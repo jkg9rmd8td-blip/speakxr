@@ -1,526 +1,120 @@
-/* SpeakXR X-Stage PRO (LIVE) — static, works on GitHub Pages */
+/* =========================
+   SpeakXR – Core Engine
+   ========================= */
 
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+console.log("🚀 SpeakXR Engine Loaded");
 
-/* ---------------- Router ---------------- */
-function go(page){
-  const id = `page-${page}`;
-  $$('.page').forEach(p => p.classList.remove('active'));
-  const t = document.getElementById(id);
-  if(t) t.classList.add('active');
-  $$('.navBtn').forEach(b => b.classList.toggle('active', b.dataset.go === page));
-  history.replaceState({}, '', `#${page}`);
-}
-$$('.navBtn').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
-window.addEventListener('load', () => go((location.hash || '#home').slice(1)));
-window.addEventListener('hashchange', () => go((location.hash || '#home').slice(1)));
+/* -------- Navigation -------- */
+const navButtons = document.querySelectorAll("[data-go]");
+const pages = document.querySelectorAll(".page");
 
-/* ---------------- State ---------------- */
-let sessionOn = false;
-let t = 0;
-let timer = null;
+navButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.go;
 
-let arOn = false, hudOn = true, audOn = false, teleOn = false, vrOn = false, sttOn = false;
-let marks = 0;
+    // active button
+    navButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
-const dot = $('#dot'), stTitle = $('#stTitle'), stSub = $('#stSub');
-const pillMode = $('#pillMode'), pillAR = $('#pillAR'), pillAud = $('#pillAud'), pillSTT = $('#pillSTT');
-
-const cam = $('#cam');
-const hud = $('#hud');
-const audience = $('#audience');
-const tele = $('#tele');
-const vr = $('#vr');
-
-const hudTimer = $('#hudTimer');
-const kTime = $('#kTime'), kWpm = $('#kWpm'), kFiller = $('#kFiller'), kConf = $('#kConf'), kEnergy = $('#kEnergy'), kClarity = $('#kClarity');
-
-const audPower = $('#audPower');
-const teleSpeed = $('#teleSpeed');
-const hudSize = $('#hudSize');
-
-const teleText = $('#teleText');
-const scriptInput = $('#scriptInput');
-const teleArea = $('#teleArea');
-
-const transcriptEl = $('#transcript');
-
-const vu = $('#vu');
-const vuctx = vu.getContext('2d');
-const micState = $('#micState');
-const micPeak = $('#micPeak');
-const micMarks = $('#micMarks');
-
-const hintOverlay = $('#hintOverlay');
-const hintText = $('#hintText');
-
-function fmt(sec){
-  const m = String(Math.floor(sec/60)).padStart(2,'0');
-  const s = String(sec%60).padStart(2,'0');
-  return `${m}:${s}`;
-}
-
-function setStatus(colorVar, title, sub){
-  dot.style.background = `var(${colorVar})`;
-  stTitle.textContent = title;
-  stSub.textContent = sub;
-}
-
-function showHint(text){
-  hintText.textContent = text;
-  hintOverlay.hidden = false;
-}
-function hideHint(){
-  hintOverlay.hidden = true;
-}
-
-$('#closeHint').addEventListener('click', hideHint);
-$('#retryPerms').addEventListener('click', async ()=>{ hideHint(); await ensureAR(); });
-
-/* ---------------- Theme ---------------- */
-let dark = true;
-$('#themeBtn').addEventListener('click', ()=>{
-  dark = !dark;
-  document.documentElement.style.filter = dark ? 'none' : 'invert(1) hue-rotate(180deg)';
-});
-$('#helpBtn').addEventListener('click', ()=>{
-  showHint(
-`1) AR Camera: وافق على الكاميرا.\n2) تسجيل: وافق على الميك.\n3) STT: يدعمها Chrome غالبًا.\nإذا رفضت صلاحية: افتح Site settings واسمح.`
-  );
+    // active page
+    pages.forEach(p => p.classList.remove("active"));
+    const page = document.getElementById(`page-${target}`);
+    if (page) page.classList.add("active");
+  });
 });
 
-/* ---------------- HUD sizing ---------------- */
-hudSize.addEventListener('input', ()=>{
-  hud.style.fontSize = `${hudSize.value}px`;
+/* -------- Stage Controls -------- */
+const stageMode = document.getElementById("pillMode");
+const statusTitle = document.getElementById("stTitle");
+const statusSub = document.getElementById("stSub");
+
+function setMode(mode) {
+  stageMode.textContent = `MODE: ${mode}`;
+  statusTitle.textContent = "قيد التشغيل";
+  statusSub.textContent = `الوضع الحالي: ${mode}`;
+}
+
+/* -------- Buttons -------- */
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const wowBtn = document.getElementById("wowBtn");
+
+startBtn?.addEventListener("click", () => {
+  setMode("XR");
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
 });
 
-/* ---------------- Teleprompter ---------------- */
-function applyTele(text){
-  const v = (text || '').trim();
-  teleText.textContent = v || 'اكتب النص ثم “تطبيق النص”.';
-  if(teleOn){
-    tele.removeAttribute('aria-hidden');
-  }
-}
-$('#applyScript').addEventListener('click', ()=> applyTele(scriptInput.value));
-$('#teleApply').addEventListener('click', ()=> applyTele(teleArea.value));
-$('#teleClear').addEventListener('click', ()=> { teleArea.value=''; applyTele(''); });
-
-/* ---------------- Toggles ---------------- */
-function syncPills(){
-  pillMode.textContent = `MODE: ${sessionOn ? 'LIVE' : 'READY'}`;
-  pillAR.textContent = `AR: ${arOn ? 'ON' : 'OFF'}`;
-  pillAud.textContent = `AUD: ${audPower.value}`;
-  pillSTT.textContent = `STT: ${sttOn ? 'ON' : 'OFF'}`;
-}
-function setHud(on){
-  hudOn = on;
-  hud.style.display = hudOn ? 'block' : 'none';
-}
-function setTele(on){
-  teleOn = on;
-  if(teleOn){
-    tele.removeAttribute('aria-hidden');
-    tele.style.display = 'block';
-  }else{
-    tele.setAttribute('aria-hidden', 'true');
-    tele.style.display = 'none';
-  }
-}
-function setAudience(on){
-  audOn = on;
-  audience.style.display = audOn ? 'block' : 'none';
-  audience.setAttribute('aria-hidden', audOn ? 'false' : 'true');
-  if(audOn) startAudience();
-}
-function setVR(on){
-  vrOn = on;
-  vr.style.display = vrOn ? 'block' : 'none';
-  vr.setAttribute('aria-hidden', vrOn ? 'false' : 'true');
-}
-async function setAR(on){
-  arOn = on;
-  if(arOn){
-    await ensureAR();
-    cam.classList.add('on');
-  }else{
-    cam.classList.remove('on');
-    stopAR();
-  }
-  syncPills();
-}
-async function setSTT(on){
-  sttOn = on;
-  if(sttOn){
-    startSTT();
-  }else{
-    stopSTT();
-  }
-  syncPills();
-}
-
-$('#toggleAR').addEventListener('click', ()=> setAR(!arOn));
-$('#toggleHUD').addEventListener('click', ()=> setHud(!hudOn));
-$('#toggleAudience').addEventListener('click', ()=> setAudience(!audOn));
-$('#toggleTele').addEventListener('click', ()=> setTele(!teleOn));
-$('#toggleVR').addEventListener('click', ()=> setVR(!vrOn));
-$('#toggleSTT').addEventListener('click', ()=> setSTT(!sttOn));
-
-$('#xrAR').addEventListener('click', ()=> setAR(!arOn));
-$('#xrHUD').addEventListener('click', ()=> setHud(!hudOn));
-$('#xrAud').addEventListener('click', ()=> setAudience(!audOn));
-$('#xrTele').addEventListener('click', ()=> setTele(!teleOn));
-$('#xrVR').addEventListener('click', ()=> setVR(!vrOn));
-$('#xrSTT').addEventListener('click', ()=> setSTT(!sttOn));
-
-audPower.addEventListener('input', ()=> syncPills());
-
-/* ---------------- Session Timer ---------------- */
-function tick(){
-  t++;
-  const time = fmt(t);
-  hudTimer.textContent = time;
-  kTime.textContent = time;
-
-  // WPM estimate: words counted from transcript or script
-  const txt = (transcriptText || scriptInput.value || teleArea.value || '').trim();
-  const words = txt ? txt.split(/\s+/).filter(Boolean).length : 0;
-  const minutes = Math.max(1/60, t/60);
-  const wpm = Math.round(words / minutes);
-
-  // filler count
-  const fillers = countFillers(txt);
-
-  // energy/clarity from mic peak + wpm stability (simple heuristics)
-  const peak = lastPeak || 0;
-  const energy = clamp(Math.round(peak * 120), 0, 100);
-  const clarity = clamp(Math.round(60 + (peak*60) - (fillers*2) + (wpm>160?-10:0)), 0, 100);
-
-  // confidence: blend energy + clarity + audience power
-  const conf = clamp(Math.round((energy*0.35) + (clarity*0.45) + (Number(audPower.value)*0.20)), 0, 100);
-
-  kWpm.textContent = isFinite(wpm) ? wpm : 0;
-  kFiller.textContent = fillers;
-  kEnergy.textContent = energy;
-  kClarity.textContent = clarity;
-  kConf.textContent = `${conf}%`;
-
-  // update audience dynamics
-  if(audOn) updateAudience(conf, wpm, fillers);
-}
-
-$('#startBtn').addEventListener('click', ()=>{
-  if(sessionOn) return;
-  sessionOn = true;
-  t = 0;
-  marks = 0;
-  micMarks.textContent = '0';
-  setStatus('--ok', 'LIVE', 'الجلسة شغّالة… ورّنا الوحش 👑');
-  $('#stopBtn').disabled = false;
-  $('#startBtn').disabled = true;
-
-  syncPills();
-  hudTimer.textContent = '00:00';
-  kTime.textContent = '00:00';
-
-  timer = setInterval(tick, 1000);
+stopBtn?.addEventListener("click", () => {
+  setMode("READY");
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
 });
 
-$('#stopBtn').addEventListener('click', ()=>{
-  if(!sessionOn) return;
-  sessionOn = false;
-  if(timer) clearInterval(timer);
-  timer = null;
-  setStatus('--warn', 'متوقف', 'احفظ الجلسة أو سو تقرير');
-  $('#stopBtn').disabled = true;
-  $('#startBtn').disabled = false;
-  syncPills();
+wowBtn?.addEventListener("click", () => {
+  alert("🔥 Demo WOW جاهز – تخيّل جمهور + HUD + تحكيم");
 });
 
-/* ---------------- WOW Buttons ---------------- */
-$('#wowBtn').addEventListener('click', ()=>{
-  go('xr');
-  setHud(true);
-  setTele(true);
-  setAudience(true);
-  setVR(false);
-  audPower.value = 86;
-  syncPills();
-  pushBot(`شغّلت لك وضع WOW: HUD + تلقين + جمهور. الآن اضغط “بدء جلسة” وابدأ تتكلم.`);
+/* -------- XR / AR / VR -------- */
+const xrHud = document.getElementById("xrHud");
+const xrAud = document.getElementById("xrAud");
+const xrTele = document.getElementById("xrTele");
+const xrVr = document.getElementById("xrVr");
+
+const hud = document.getElementById("hud");
+const audience = document.getElementById("audience");
+const tele = document.getElementById("tele");
+const vr = document.getElementById("vr");
+
+xrHud?.addEventListener("click", () => {
+  hud.style.display = hud.style.display === "none" ? "block" : "none";
 });
 
-$('#boostBtn').addEventListener('click', ()=>{
-  audPower.value = clamp(Number(audPower.value) + 10, 0, 100);
-  syncPills();
+xrAud?.addEventListener("click", () => {
+  audience.style.display = audience.style.display === "none" ? "block" : "none";
 });
 
-$('#helpBtn').addEventListener('dblclick', ()=> pushBot('لا تضرب زر المساعدة مرتين… بيحسبك متوتر 😄'));
+xrTele?.addEventListener("click", () => {
+  tele.style.display = tele.style.display === "none" ? "block" : "none";
+});
 
-/* ---------------- AR Camera ---------------- */
-let camStream = null;
+xrVr?.addEventListener("click", () => {
+  vr.style.display = vr.style.display === "none" ? "block" : "none";
+});
 
-async function ensureAR(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    showHint('جهازك/متصفحك ما يدعم getUserMedia. جرّب Chrome.');
-    arOn = false; syncPills();
-    return;
-  }
-  try{
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio:false });
-    cam.srcObject = camStream;
-    cam.play().catch(()=>{});
-  }catch(e){
-    arOn = false; syncPills();
-    showHint('الكاميرا رفضت الصلاحية. افتح إعدادات الموقع (Site settings) واسمح Camera ثم Retry.');
-  }
-}
-function stopAR(){
-  if(camStream){
-    camStream.getTracks().forEach(t => t.stop());
-    camStream = null;
-  }
-  cam.srcObject = null;
-}
+/* -------- Teleprompter -------- */
+const teleArea = document.getElementById("teleArea");
+const teleText = document.getElementById("teleText");
+const teleApply = document.getElementById("teleApply");
 
-/* ---------------- Microphone + Visualizer + Recording ---------------- */
-let audioStream = null;
-let audioCtx = null;
-let analyser = null;
-let dataArr = null;
-let raf = null;
-let lastPeak = 0;
-
-let mediaRecorder = null;
-let chunks = [];
-let recording = false;
-
-async function ensureMic(){
-  if(!navigator.mediaDevices?.getUserMedia){
-    showHint('المايك غير مدعوم هنا. جرّب Chrome.');
-    return false;
-  }
-  try{
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = audioCtx.createMediaStreamSource(audioStream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 1024;
-    dataArr = new Uint8Array(analyser.frequencyBinCount);
-    src.connect(analyser);
-    drawVU();
-    return true;
-  }catch(e){
-    showHint('المايك رفض الصلاحية. اسمح Microphone من Site settings ثم جرّب.');
-    return false;
-  }
-}
-
-function drawVU(){
-  if(!analyser) return;
-  analyser.getByteFrequencyData(dataArr);
-  vuctx.clearRect(0,0,vu.width,vu.height);
-
-  // background
-  vuctx.fillStyle = 'rgba(255,255,255,0.04)';
-  vuctx.fillRect(0,0,vu.width,vu.height);
-
-  // bars
-  const bars = 56;
-  const step = Math.floor(dataArr.length / bars);
-  let peak = 0;
-  for(let i=0;i<bars;i++){
-    const v = dataArr[i*step] / 255;
-    peak = Math.max(peak, v);
-    const h = Math.max(2, v * (vu.height-10));
-    const x = (i*(vu.width/bars));
-    vuctx.fillStyle = `rgba(33,230,164,${0.35 + v*0.55})`;
-    vuctx.fillRect(x, vu.height-h, (vu.width/bars)-2, h);
-  }
-  lastPeak = peak;
-  micPeak.textContent = peak.toFixed(2);
-
-  raf = requestAnimationFrame(drawVU);
-}
-
-$('#recBtn').addEventListener('click', async ()=>{
-  if(!recording){
-    const ok = await ensureMic();
-    if(!ok) return;
-
-    // recorder
-    try{
-      chunks = [];
-      mediaRecorder = new MediaRecorder(audioStream);
-      mediaRecorder.ondataavailable = (e)=> chunks.push(e.data);
-      mediaRecorder.onstop = ()=> {
-        const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        pushBot(`تم حفظ التسجيل. (تحميل)`);
-        // create a download link message
-        addDownloadLink(url, `speakxr_record_${Date.now()}.webm`);
-      };
-      mediaRecorder.start();
-      recording = true;
-      micState.textContent = 'Recording';
-      $('#recBtn').textContent = '⏹️ إيقاف التسجيل';
-      setStatus('--ok', 'Recording', 'التسجيل شغال…');
-    }catch(e){
-      showHint('التسجيل غير مدعوم على هذا المتصفح. جرّب Chrome.');
-    }
-  }else{
-    // stop
-    recording = false;
-    micState.textContent = 'Idle';
-    $('#recBtn').textContent = '🎙️ تسجيل';
-    setStatus('--warn', 'Stopped', 'تم إيقاف التسجيل.');
-    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+teleApply?.addEventListener("click", () => {
+  if (teleArea.value.trim() !== "") {
+    teleText.textContent = teleArea.value;
   }
 });
 
-function stopMicAll(){
-  if(raf) cancelAnimationFrame(raf);
-  raf = null;
-  try{ audioCtx?.close(); }catch{}
-  audioCtx = null;
-  analyser = null;
-  dataArr = null;
+/* -------- Coach Mock -------- */
+const chat = document.getElementById("chat");
+const chatInput = document.getElementById("chatInput");
+const sendChat = document.getElementById("sendChat");
 
-  if(audioStream){
-    audioStream.getTracks().forEach(t => t.stop());
-    audioStream = null;
-  }
-}
-window.addEventListener('beforeunload', ()=> {
-  stopAR();
-  stopMicAll();
-  stopSTT();
+sendChat?.addEventListener("click", () => {
+  const q = chatInput.value.trim();
+  if (!q) return;
+
+  chat.innerHTML += `<div><b>أنت:</b> ${q}</div>`;
+  chat.innerHTML += `<div><b>🎤 المدرب:</b> افتح بقصة قصيرة، ثم سؤال قوي، ثم وعد للجمهور.</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  chatInput.value = "";
 });
 
-$('#markBtn').addEventListener('click', ()=>{
-  marks++;
-  micMarks.textContent = String(marks);
-  pushBot(`تم وضع علامة #${marks} عند ${fmt(t)} ✅`);
+/* -------- Judge -------- */
+const calcJudge = document.getElementById("calcJudge");
+const finalScore = document.getElementById("finalScore");
+const decision = document.getElementById("decision");
+
+calcJudge?.addEventListener("click", () => {
+  const score = Math.floor(70 + Math.random() * 25);
+  finalScore.textContent = score;
+  decision.textContent = score > 80 ? "🔥 ممتاز" : "👍 جيد جدًا";
 });
-
-/* ---------------- STT (Speech to Text) ---------------- */
-let rec = null;
-let transcriptText = '';
-
-function startSTT(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){
-    showHint('SpeechRecognition غير مدعوم هنا. جرّب Chrome.');
-    sttOn = false; syncPills();
-    return;
-  }
-  rec = new SR();
-  rec.lang = 'ar-SA';
-  rec.interimResults = true;
-  rec.continuous = true;
-
-  rec.onresult = (e)=>{
-    let finalText = '';
-    let interim = '';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const txt = e.results[i][0].transcript;
-      if(e.results[i].isFinal) finalText += txt + ' ';
-      else interim += txt;
-    }
-    if(finalText.trim()){
-      transcriptText += finalText;
-    }
-    transcriptEl.textContent = (transcriptText + '\n' + (interim ? `… ${interim}` : '')).trim() || '—';
-  };
-
-  rec.onerror = ()=>{
-    // if permission etc
-  };
-  rec.onend = ()=>{
-    // auto-restart while sttOn
-    if(sttOn){
-      try{ rec.start(); }catch{}
-    }
-  };
-
-  try{ rec.start(); }catch{}
-  pushBot('تم تشغيل تحويل الكلام لنص (STT).');
-}
-function stopSTT(){
-  try{ rec?.stop(); }catch{}
-  rec = null;
-}
-$('#copyTranscript').addEventListener('click', async ()=>{
-  const txt = transcriptEl.textContent || '';
-  try{ await navigator.clipboard.writeText(txt); pushBot('تم النسخ ✅'); }catch{ pushBot('النسخ فشل.'); }
-});
-$('#clearTranscript').addEventListener('click', ()=>{
-  transcriptText = '';
-  transcriptEl.textContent = '—';
-});
-
-/* ---------------- Audience (canvas particles) ---------------- */
-const audCanvas = $('#aud');
-const auctx = audCanvas.getContext('2d');
-let audRAF = null;
-let particles = [];
-let audClaps = 0;
-
-function resizeAud(){
-  // keep internal resolution sharp-ish
-  const w = audCanvas.clientWidth || 900;
-  const h = audCanvas.clientHeight || 320;
-  audCanvas.width = Math.floor(w * devicePixelRatio);
-  audCanvas.height = Math.floor(h * devicePixelRatio);
-  auctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-}
-window.addEventListener('resize', resizeAud);
-
-function initAudience(){
-  resizeAud();
-  particles = [];
-  const n = 120;
-  for(let i=0;i<n;i++){
-    particles.push({
-      x: Math.random()* (audCanvas.width/devicePixelRatio),
-      y: Math.random()* (audCanvas.height/devicePixelRatio),
-      r: 2 + Math.random()*3,
-      vx: (-0.6 + Math.random()*1.2),
-      vy: (-0.4 + Math.random()*0.8),
-      o: 0.25 + Math.random()*0.65
-    });
-  }
-}
-
-function startAudience(){
-  if(!particles.length) initAudience();
-  if(audRAF) return;
-  const loop = ()=>{
-    drawAudience();
-    audRAF = requestAnimationFrame(loop);
-  };
-  loop();
-}
-function stopAudience(){
-  if(audRAF) cancelAnimationFrame(audRAF);
-  audRAF = null;
-}
-
-function drawAudience(){
-  const w = audCanvas.width/devicePixelRatio;
-  const h = audCanvas.height/devicePixelRatio;
-  auctx.clearRect(0,0,w,h);
-
-  // bg glow
-  const g = auctx.createRadialGradient(w*0.5,h*0.3,30,w*0.5,h*0.5,Math.max(w,h));
-  g.addColorStop(0,'rgba(124,92,255,0.18)');
-  g.addColorStop(1,'rgba(0,0,0,0.0)');
-  auctx.fillStyle = g;
-  auctx.fillRect(0,0,w,h);
-
-  const power = Number(audPower.value);
-  const speed = 0.3 + power/220;
-
-  for(const p of particles){
-    p.x += p.vx*speed;
-    p
