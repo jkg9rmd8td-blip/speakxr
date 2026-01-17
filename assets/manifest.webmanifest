@@ -1,10 +1,10 @@
 {
-  "name": "SpeakXR",
-  "short_name": "SpeakXR",
+  "name": "SpeakXR X-Stage PRO",
+  "short_name": "X-Stage",
   "start_url": "../index.html",
   "display": "standalone",
   "background_color": "#070815",
   "theme_color": "#070815",
-  "description": "SpeakXR XR Platform — تدريب خطاب وإعلام مع تحليل حي وتلقين وتقارير",
+  "description": "SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive + Jury",
   "icons": []
 }
