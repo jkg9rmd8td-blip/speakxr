@@ -1296,4 +1296,200 @@
   btnSimStress.addEventListener("click", () => {
     state.stressOn = !state.stressOn;
     toastShow("ضغط التدريب", [
-     
+           state.stressOn ? "ON ✅" : "OFF ✅",
+      "الضغط يزيد صعوبة التقييم ويقلل الدرجة."
+    ]);
+  });
+
+  btnCamera.addEventListener("dblclick", () => {
+    // Easter egg: double-click toggles exec
+    document.body.classList.toggle("exec");
+  });
+
+  // =========================
+  // FIX: Wire missing buttons + transitions
+  // =========================
+
+  // زر “تشغيل مسرح XR” لو موجود بالصفحة
+  if (btnEnterStage) {
+    btnEnterStage.addEventListener("click", () => jumpToPanel("stage"));
+  }
+
+  // زر “تحميل تقرير” من الهيرو
+  if (btnDownloadReport) {
+    btnDownloadReport.addEventListener("click", () => {
+      if (!state.lastJury) {
+        toastShow("تحميل تقرير", ["سو تحكيم أولاً (تحكيم فوري)."]);
+        return;
+      }
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadText(`SpeakXR_Report_${ts}.txt`, buildFullTextReport(state.lastJury));
+    });
+  }
+
+  // زر "حفظ الجلسة" لو موجود
+  if (btnSaveSession) {
+    btnSaveSession.addEventListener("click", saveSessionNow);
+  }
+
+  // زر “فتح/إغلاق التقرير النصي”
+  if (btnTextReport) {
+    btnTextReport.addEventListener("click", () => {
+      if (!state.lastJury) {
+        toastShow("تقرير نصي", ["سو تحكيم أولاً (زر: تحكيم فوري)."]);
+        return;
+      }
+      textReport.classList.toggle("hidden");
+    });
+  }
+
+  // زر “تحكيم فوري”
+  if (btnGenerate) {
+    btnGenerate.addEventListener("click", () => {
+      const j = computeScore();
+      if (!j) {
+        toastShow("تحكيم فوري", [
+          "ما فيه بيانات كفاية.",
+          "اضغط تسجيل 🎙️ وتكلم 10 ثواني… ثم ارجع للتحكيم."
+        ]);
+        return;
+      }
+      applyJury(j);
+      jumpToPanel("jury");
+      toastShow("تم التحكيم ✅", [
+        `الدرجة: ${j.total}/100`,
+        `المستوى: ${j.level}`
+      ]);
+    });
+  }
+
+  // زر “تفعيل/إيقاف المحاكاة”
+  if (btnStartSim) {
+    btnStartSim.addEventListener("click", () => {
+      if (state.simOn) stopSim();
+      else startSim();
+    });
+  }
+
+  // زر Demo السريع
+  if (btnQuickDemo) {
+    btnQuickDemo.addEventListener("click", () => {
+      stopSim();
+      stopRecording();
+      setMode("xr");
+      setTrain("official");
+      setEnv("conference");
+      resetMetrics();
+      jumpToPanel("stage");
+      startSim();
+      toastShow("Demo ⚡", ["تم تشغيل Demo ومحاكاة حقيقية للمؤشرات."]);
+    });
+  }
+
+  // زر “تشغيل/إيقاف الكاميرا”
+  if (btnCamera) {
+    btnCamera.addEventListener("click", () => state.cameraOn ? stopCamera() : startCamera());
+  }
+
+  // زر “تسجيل” (Toggle)
+  if (btnRecord) {
+    btnRecord.addEventListener("click", () => {
+      if (state.recording) stopRecording();
+      else startRecording();
+    });
+  }
+
+  // زر “Reset”
+  if (btnResetStage) {
+    btnResetStage.addEventListener("click", () => {
+      if (state.recording) stopRecording();
+      stopSim();
+      resetMetrics();
+      toastShow("Reset ✅", ["رجعنا كل شيء للوضع الافتراضي."]);
+    });
+  }
+
+  // زر “Snapshot”
+  if (btnSnap) {
+    btnSnap.addEventListener("click", () => {
+      const snapshotText = [
+        `SpeakXR HUD Snapshot`,
+        `TIME: ${new Date().toLocaleString("ar-SA")}`,
+        `MODE: ${state.mode}`,
+        `ENV: ${state.env}`,
+        `TRAIN: ${state.train}`,
+        `WPM: ${state.wpm}`,
+        `CONF: ${state.conf}`,
+        `ENG: ${state.eng}`,
+        `FILL: ${(state.transcript && state.transcript.trim()) ? state.fill : "—"}`,
+        `MOOD: ${audEmoji.textContent} ${audText.textContent}`,
+        `TRANSCRIPT: ${(state.transcript || "").trim() || "—"}`
+      ].join("\n");
+
+      downloadText("SpeakXR_HUD_SNAPSHOT.txt", snapshotText);
+
+      if (state.cameraOn && cam && cam.videoWidth) {
+        const c = document.createElement("canvas");
+        c.width = cam.videoWidth;
+        c.height = cam.videoHeight;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(cam, 0, 0, c.width, c.height);
+
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(24, 24, 520, 210);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 26px Tajawal, sans-serif";
+        ctx.fillText("SpeakXR HUD", 44, 60);
+        ctx.font = "bold 18px Tajawal, sans-serif";
+        ctx.fillText(`WPM: ${state.wpm}`, 44, 95);
+        ctx.fillText(`CONF: ${state.conf}`, 44, 125);
+        ctx.fillText(`ENG: ${state.eng}`, 44, 155);
+        ctx.fillText(`MOOD: ${audEmoji.textContent}`, 44, 185);
+
+        c.toBlob((blob) => {
+          if (blob) downloadBlob("SpeakXR_CameraFrame.png", blob);
+        }, "image/png");
+      }
+
+      toastShow("لقطة HUD ✅", [
+        "تم تنزيل Snapshot نصي.",
+        state.cameraOn ? "وتم تنزيل لقطة PNG من الكاميرا." : "شغّل الكاميرا لو تبي PNG."
+      ]);
+    });
+  }
+
+  // =========================
+  // UX: Close toast by clicking outside
+  // =========================
+  if (toast) {
+    toast.addEventListener("click", (e) => {
+      if (e.target === toast) toastHide();
+    });
+  }
+
+  // =========================
+  // Init
+  // =========================
+  function init() {
+    // default show stage
+    panels.forEach(p => p.style.display = (p.dataset.panel === "stage") ? "" : "none");
+
+    setMode("xr");
+    setTrain("official");
+    setEnv("conference");
+    setCoachStyle("enc");
+
+    resetMetrics();
+    loadSessions();
+    drawTimeline(true);
+
+    toastHide();
+    toastShow("جاهز ✅", [
+      "أفضل بداية: شغّل الكاميرا (اختياري) ثم اضغط تسجيل 🎙️ وتكلم 15 ثانية.",
+      "بعدها اضغط (تحكيم فوري) و(حفظ الجلسة)."
+    ]);
+  }
+
+  init();
+
+})();
