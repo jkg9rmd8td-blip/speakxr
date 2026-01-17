@@ -6,13 +6,69 @@
   <meta name="theme-color" content="#070815"/>
   <title>SpeakXR X-Stage PRO</title>
 
-  <link rel="stylesheet" href="./assets/css/styles.css">
-<script type="module" src="./assets/js/app.js"></script>
-
   <meta name="description" content="SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive Dashboard + Jury Board"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./assets/css/styles.css"/>
+
+  <!-- (Optional) PWA -->
+  <link rel="manifest" href="./assets/manifest.webmanifest"/>
 </head>
 
 <body>
+  <!-- JS OFF fallback -->
+  <noscript>
+    <div style="padding:14px;margin:14px;border-radius:12px;background:#240;color:#ffd;border:1px solid rgba(255,255,255,.15);font-family:Tahoma,Arial">
+      لازم تفعّل JavaScript عشان المنصة تشتغل (Tabs / Stage / تقارير).
+    </div>
+  </noscript>
+
+  <!-- Boot Overlay (يتأكد لك إن JS اشتغل) -->
+  <div id="bootOverlay" style="
+    position:fixed;inset:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1000px 600px at 60% 35%, rgba(80,120,255,.18), rgba(0,0,0,0)) , #070815;
+    color:#fff;font-family:Tahoma,Arial;
+  ">
+    <div style="
+      width:min(520px,92vw);
+      padding:18px 16px;border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 18px 80px rgba(0,0,0,.45);
+      text-align:right
+    ">
+      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:18px;font-weight:800">SpeakXR X-Stage PRO</div>
+          <div style="opacity:.75;margin-top:3px">جاري تفعيل المنصة…</div>
+        </div>
+        <div style="
+          width:44px;height:44px;border-radius:14px;
+          display:grid;place-items:center;
+          background:linear-gradient(135deg, rgba(34,211,238,.25), rgba(99,102,241,.22));
+          border:1px solid rgba(255,255,255,.18);
+          font-weight:800
+        ">SX</div>
+      </div>
+
+      <div style="margin-top:14px;opacity:.75;line-height:1.9">
+        إذا بقى هذا الشريط وما اختفى خلال ثانيتين… معناها <b>مسار JS</b> أو <b>Imports</b> فيها مشكلة.
+      </div>
+
+      <div style="margin-top:14px;height:10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)">
+        <div style="height:100%;width:60%;border-radius:999px;background:linear-gradient(90deg, rgba(34,211,238,.9), rgba(99,102,241,.9));
+          animation:bootbar 1.1s ease-in-out infinite alternate;"></div>
+      </div>
+
+      <div id="bootMsg" style="margin-top:10px;font-size:12px;opacity:.75">Initializing…</div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes bootbar { from { width: 30%; opacity:.7 } to { width: 92%; opacity:1 } }
+  </style>
+
   <!-- TOP BAR -->
   <header class="topbarPro">
     <div class="wrap topbarIn">
@@ -188,335 +244,4 @@
             <div class="ctaMini">AR Preview</div>
           </button>
 
-          <button class="scPro" data-sc="قاعة تدريب" data-env="studio">
-            <div class="ico">🎓</div><div class="t">قاعة تدريب</div><div class="s">شرح خطوة بخطوة • تفاعل أسئلة/أجوبة</div>
-            <div class="ctaMini">AR Preview</div>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: WEBXR -->
-    <section class="view" data-view="webxr">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>WebXR</b>
-          <span class="muted">تشغيل AR/VR إذا كان مدعوم… وإلا بيشتغل XR بالكاميرا/HUD طبيعي</span>
-        </div>
-
-        <div class="grid2">
-          <div class="cardPro">
-            <div class="t">AR Support</div>
-            <div class="v" id="xrSupport">—</div>
-            <div class="s">فحص دعم immersive-ar</div>
-            <button class="btn primary" id="checkXRBtn">فحص</button>
-          </div>
-
-          <div class="cardPro">
-            <div class="t">Start AR</div>
-            <div class="v">WebXR AR</div>
-            <div class="s">إذا غير مدعوم، يرجع للوضع العادي</div>
-            <button class="btn ghost" id="startAR">🕶️ Start</button>
-          </div>
-        </div>
-
-        <div class="panel pad" style="margin-top:12px">
-          <b>ملاحظة واقعية</b>
-          <div class="muted" style="margin-top:6px;line-height:1.9">
-            على iOS غالبًا WebXR محدود. الأفضل للـ AR الحقيقي: Android Chrome.
-            لكن منصة X-Stage تظل XR قوية لأنها تعتمد على <b>كاميرا + HUD + Voice Engine</b> وتشتغل على أي جهاز.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: EXECUTIVE -->
-    <section class="view" data-view="executive">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>Executive Dashboard</b>
-          <span class="muted">ملخص + مؤشرات + جاهزية عرض رسمي</span>
-        </div>
-
-        <div class="execGrid">
-          <div class="execCard">
-            <div class="t">جلسات</div>
-            <div class="v" id="exSessions">0</div>
-            <div class="s">Sessions Stored</div>
-          </div>
-          <div class="execCard">
-            <div class="t">أفضل درجة</div>
-            <div class="v" id="exBest">—</div>
-            <div class="s">Best Score</div>
-          </div>
-          <div class="execCard">
-            <div class="t">آخر سيناريو</div>
-            <div class="v" id="exLast">—</div>
-            <div class="s">Last Scenario</div>
-          </div>
-          <div class="execCard">
-            <div class="t">جاهزية</div>
-            <div class="v" id="exReady">Ready</div>
-            <div class="s">Hackathon / Demo</div>
-          </div>
-        </div>
-
-        <div class="panel pad" style="margin-top:12px">
-          <div class="panelHead">
-            <b>ملخص تنفيذي</b>
-            <span class="muted">يُستخدم للنمذجة والعرض</span>
-          </div>
-          <pre class="execText" id="execText">—</pre>
-          <div class="row" style="margin-top:10px">
-            <button class="btn ghost" id="exportExecutive">📄 تصدير ملخص HTML</button>
-            <button class="btn primary" id="goStage2">🎭 افتح المسرح</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: SETTINGS -->
-    <section class="view" data-view="settings">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>الإعدادات</b>
-          <span class="muted">تحكم بحساسية الجمهور + نمط الإرشاد + شدة الضغط</span>
-        </div>
-
-        <div class="settingsGrid">
-          <div class="setCard">
-            <div class="t">نمط الإرشاد</div>
-            <div class="seg2" id="coachModeSeg">
-              <button class="on" data-mode="soft">مشجّع</button>
-              <button data-mode="direct">مباشر</button>
-              <button data-mode="jury">لجنة تحكيم</button>
-            </div>
-            <div class="s">المشجّع لطيف… لجنة التحكيم ما تبتسم 😄</div>
-          </div>
-
-          <div class="setCard">
-            <div class="t">شدة الضغط</div>
-            <input id="pressure" type="range" min="0" max="100" value="45"/>
-            <div class="s">يزيد الأسئلة المفاجئة وتغيّر مزاج الجمهور</div>
-          </div>
-
-          <div class="setCard">
-            <div class="t">حساسية الجمهور</div>
-            <input id="audienceSense" type="range" min="0" max="100" value="55"/>
-            <div class="s">كلما زادت… الجمهور “يدقق” أكثر</div>
-          </div>
-
-          <div class="setCard">
-            <div class="t">تفعيل التلقين تلقائيًا</div>
-            <label class="toggle">
-              <input id="autoTele" type="checkbox"/>
-              <span></span>
-            </label>
-            <div class="s">يفتح التلقين عند بدء الجلسة</div>
-          </div>
-
-          <!-- Added: FX Toggle -->
-          <div class="setCard">
-            <div class="t">تفعيل FX</div>
-            <label class="toggle">
-              <input id="fxOn" type="checkbox" checked />
-              <span></span>
-            </label>
-            <div class="s">Neon Particles + Depth Glow فوق المسرح</div>
-          </div>
-
-          <!-- Added: Captions Toggle -->
-          <div class="setCard">
-            <div class="t">تفعيل Captions</div>
-            <label class="toggle">
-              <input id="ccOn" type="checkbox" checked />
-              <span></span>
-            </label>
-            <div class="s">ترجمة/تعليق تلقائي (Mock) مرتبط بالمؤشرات</div>
-          </div>
-        </div>
-
-        <div class="panel pad" style="margin-top:12px">
-          <b>Telemetry</b>
-          <div class="muted" style="margin-top:6px;line-height:1.9">
-            يتم حفظ الجلسات محليًا على جهازك فقط (LocalStorage) للتجربة والنمذجة.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: JURY -->
-    <section class="view" data-view="jury">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>لوحة التحكيم (AI Jury)</b>
-          <span class="muted">٤ لجان + درجة نهائية + قرار</span>
-        </div>
-
-        <div class="juryGrid">
-          <div class="juryCard">
-            <div class="jt">لجنة الثقة والحضور</div>
-            <ul class="jlist">
-              <li>ثبات</li><li>إدارة توتر</li><li>تواصل بصري</li>
-            </ul>
-            <textarea class="jnotes" id="jConfidence" placeholder="ملاحظات اللجنة…"></textarea>
-          </div>
-
-          <div class="juryCard">
-            <div class="jt">لجنة الصوت</div>
-            <ul class="jlist">
-              <li>وضوح</li><li>نبرة</li><li>إيقاع</li>
-            </ul>
-            <textarea class="jnotes" id="jVoice" placeholder="ملاحظات اللجنة…"></textarea>
-          </div>
-
-          <div class="juryCard big">
-            <div class="jt">الدرجة النهائية</div>
-            <div class="finalScore">
-              <div class="fsV" id="finalScore">—</div>
-              <div class="fsBar"><i id="finalBar"></i></div>
-            </div>
-            <div class="decision" id="finalDecision">—</div>
-            <div class="row" style="margin-top:10px">
-              <button class="btn primary" id="calcJury">احسب</button>
-              <button class="btn ghost" id="juryExport">📄 تصدير</button>
-            </div>
-          </div>
-
-          <div class="juryCard">
-            <div class="jt">لجنة الجمهور</div>
-            <ul class="jlist">
-              <li>تفاعل</li><li>ملل/تشتيت</li><li>تصفيق</li>
-            </ul>
-            <textarea class="jnotes" id="jAudience" placeholder="ملاحظات اللجنة…"></textarea>
-          </div>
-
-          <div class="juryCard">
-            <div class="jt">لجنة الإقناع والبناء</div>
-            <ul class="jlist">
-              <li>بداية قوية</li><li>بناء منطقي</li><li>خاتمة</li>
-            </ul>
-            <textarea class="jnotes" id="jBuild" placeholder="ملاحظات اللجنة…"></textarea>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: ANALYSIS -->
-    <section class="view" data-view="analysis">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>تحليل الأداء</b>
-          <span class="muted">Timeline + ملخص + توصيات قابلة للتنفيذ</span>
-        </div>
-
-        <div class="analysisBox">
-          <div class="aTop">
-            <div class="aCard"><div class="t">WPM</div><div class="v" id="aWpm">—</div><div class="s">المثالي 120-160</div></div>
-            <div class="aCard"><div class="t">Confidence</div><div class="v" id="aConf">—</div><div class="s">ثبات مع وضوح ونبرة</div></div>
-            <div class="aCard"><div class="t">Fillers</div><div class="v" id="aFillers">—</div><div class="s">يعني/اممم…</div></div>
-          </div>
-
-          <div class="timelineWrap">
-            <canvas id="timeline"></canvas>
-            <div class="legend">
-              <span><i class="lg c1"></i>سرعة</span>
-              <span><i class="lg c2"></i>طاقة</span>
-              <span><i class="lg c3"></i>ثقة</span>
-            </div>
-          </div>
-
-          <div class="panel pad" style="margin-top:12px">
-            <b>توصيات</b>
-            <div class="muted" id="tips" style="margin-top:6px;line-height:1.9">—</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: DATA -->
-    <section class="view" data-view="data">
-      <div class="panel pad">
-        <div class="panelHead">
-          <b>بيانات التدريب</b>
-          <span class="muted">عرض الجلسات + أعلى الدرجات</span>
-        </div>
-
-        <div class="tableWrap">
-          <table class="tbl" id="sessionsTbl">
-            <thead>
-              <tr>
-                <th>الوقت</th>
-                <th>السيناريو</th>
-                <th>البيئة</th>
-                <th>الدرجة</th>
-                <th>قرار</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="row" style="margin-top:12px">
-          <button class="btn ghost" id="refreshData">تحديث</button>
-          <button class="btn primary" id="goStage3">افتح المسرح</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: STAGE -->
-    <section class="view" data-view="stage">
-      <section class="panel stagePro">
-        <div class="panelHead">
-          <b>XR Stage 🎭</b>
-          <span class="muted">كاميرا + HUD + جمهور + تلقين + تحكم</span>
-        </div>
-
-        <div class="stageWrap" id="stageWrap">
-          <video id="cam" autoplay playsinline muted></video>
-          <canvas id="hud"></canvas>
-          <canvas id="audience"></canvas>
-
-          <!-- Teleprompter overlay -->
-          <div class="teleOverlay" id="teleOverlay">
-            <div id="teleOverlayText"></div>
-            <div class="hint">⌘K ثم tele • Right-Click = XR Menu</div>
-          </div>
-
-          <!-- Auto Captions (Mock) -->
-          <div class="captions" id="captions" aria-live="polite">
-            <div class="capBadge" id="capBadge">CC</div>
-            <div class="capText" id="capText">ابدأ الجلسة… وبتطلع الترجمة/التعليق تلقائيًا.</div>
-          </div>
-
-          <!-- FX Canvas -->
-          <canvas id="fx"></canvas>
-
-          <!-- Controls -->
-          <div class="controls">
-            <button class="btn ghost" id="toggleMirror">🪞 مرآة</button>
-            <button class="btn ghost" id="toggleAudience">👥 جمهور</button>
-            <button class="btn ghost" id="toggleTele">📝 تلقين</button>
-            <button class="btn ghost" id="toggleHUD">🧿 HUD</button>
-            <button class="btn primary" id="startSession">▶️ جلسة</button>
-            <button class="btn danger" id="stopSession" disabled>■ إيقاف</button>
-          </div>
-        </div>
-
-        <div class="panel pad" style="margin-top:12px">
-          <div class="panelHead"><b>التلقين</b><span class="muted">نص + سرعة + حجم</span></div>
-          <textarea id="teleText" placeholder="اكتب نصك هنا…"></textarea>
-          <div class="miniControls">
-            <label>سرعة</label><input id="teleSpeed" type="range" min="10" max="140" value="64"/>
-            <label>حجم</label><input id="teleSize" type="range" min="16" max="34" value="22"/>
-          </div>
-        </div>
-      </section>
-    </section>
-
-  </main>
-
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
-<script type="module" src="./app.js"></script>
+          <button class="scPro" data-sc="قاعة تدريب"
