@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#070815"/>
   <title>SpeakXR X-Stage PRO</title>
+
   <link rel="manifest" href="./assets/manifest.webmanifest"/>
   <link rel="stylesheet" href="./style.css"/>
+
   <meta name="description" content="SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive Dashboard + Jury Board"/>
 </head>
 
@@ -264,7 +266,7 @@
             <b>ملخص تنفيذي</b>
             <span class="muted">يُستخدم للنمذجة والعرض</span>
           </div>
-          <div class="execText" id="execText">—</div>
+          <pre class="execText" id="execText">—</pre>
           <div class="row" style="margin-top:10px">
             <button class="btn ghost" id="exportExecutive">📄 تصدير ملخص HTML</button>
             <button class="btn primary" id="goStage2">🎭 افتح المسرح</button>
@@ -311,6 +313,26 @@
               <span></span>
             </label>
             <div class="s">يفتح التلقين عند بدء الجلسة</div>
+          </div>
+
+          <!-- Added: FX Toggle -->
+          <div class="setCard">
+            <div class="t">تفعيل FX</div>
+            <label class="toggle">
+              <input id="fxOn" type="checkbox" checked />
+              <span></span>
+            </label>
+            <div class="s">Neon Particles + Depth Glow فوق المسرح</div>
+          </div>
+
+          <!-- Added: Captions Toggle -->
+          <div class="setCard">
+            <div class="t">تفعيل Captions</div>
+            <label class="toggle">
+              <input id="ccOn" type="checkbox" checked />
+              <span></span>
+            </label>
+            <div class="s">ترجمة/تعليق تلقائي (Mock) مرتبط بالمؤشرات</div>
           </div>
         </div>
 
@@ -461,6 +483,15 @@
             <div class="hint">⌘K ثم tele • Right-Click = XR Menu</div>
           </div>
 
+          <!-- Auto Captions (Mock) -->
+          <div class="captions" id="captions" aria-live="polite">
+            <div class="capBadge" id="capBadge">CC</div>
+            <div class="capText" id="capText">ابدأ الجلسة… وبتطلع الترجمة/التعليق تلقائيًا.</div>
+          </div>
+
+          <!-- FX Canvas -->
+          <canvas id="fx"></canvas>
+
           <!-- Controls -->
           <div class="controls">
             <button class="btn ghost" id="toggleMirror">🪞 مرآة</button>
@@ -472,15 +503,12 @@
           </div>
         </div>
 
-        <!-- Teleprompter panel -->
         <div class="panel pad" style="margin-top:12px">
           <div class="panelHead"><b>التلقين</b><span class="muted">نص + سرعة + حجم</span></div>
           <textarea id="teleText" placeholder="اكتب نصك هنا…"></textarea>
           <div class="miniControls">
             <label>سرعة</label><input id="teleSpeed" type="range" min="10" max="140" value="64"/>
-            <label>حجم</label><input id="teleSize" type="range" min="16" max="40" value="22"/>
-            <button class="btn ghost" id="teleRun">▶️ تشغيل</button>
-            <button class="btn ghost" id="telePause">⏸️ إيقاف</button>
+            <label>حجم</label><input id="teleSize" type="range" min="16" max="34" value="22"/>
           </div>
         </div>
       </section>
@@ -488,35 +516,6 @@
 
   </main>
 
-  <!-- Command Palette -->
-  <div class="cpBack" id="cpBack" aria-hidden="true">
-    <div class="cp" role="dialog" aria-label="Command Palette">
-      <input id="cpInput" placeholder="اكتب أمر… (stage, start, stop, tele, coach, save, export, jury, analysis)"/>
-      <div class="cpList" id="cpList"></div>
-    </div>
-  </div>
-
-  <!-- Radial Menu -->
-  <div class="radial" id="radial" aria-hidden="true">
-    <div class="ring" id="ring"></div>
-    <div class="label" id="radialLabel">XR Menu<br/>اختصار سريع</div>
-  </div>
-<!-- XR Radial Menu (Right-click / Long-press) -->
-<div class="xrMenuBack" id="xrMenuBack" aria-hidden="true">
-  <div class="xrMenu" id="xrMenu" role="dialog" aria-label="XR Menu">
-    <div class="xrRing" id="xrRing">
-      <button class="xrItem" data-action="start" title="Start">▶</button>
-      <button class="xrItem" data-action="stop" title="Stop">■</button>
-      <button class="xrItem" data-action="tele" title="Teleprompter">📝</button>
-      <button class="xrItem" data-action="aud" title="Audience">👥</button>
-      <button class="xrItem" data-action="hud" title="HUD">🧿</button>
-      <button class="xrItem" data-action="mirror" title="Mirror">🪞</button>
-      <button class="xrItem" data-action="save" title="Save">💾</button>
-    </div>
-    <div class="xrLabel" id="xrLabel">XR Menu<br/>Right-Click / لمس مطوّل</div>
-  </div>
-</div>
-  <script type="module" src="./app.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
