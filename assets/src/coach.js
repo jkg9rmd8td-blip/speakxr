@@ -1,81 +1,59 @@
-import { clamp } from "./core.js";
-
 export function createCoach(ui){
-  let lastMsgAt = 0;
-  let style = "enc"; // enc | dir
-  let sessionOn = false;
+  let lastMsg = "";
+  let active = false;
 
-  function setStyle(v){
-    style = v === "dir" ? "dir" : "enc";
+  function say(msg){
+    if(msg === lastMsg) return;
+    lastMsg = msg;
+    ui.coachBox.textContent = msg;
   }
 
   function onSessionStart(){
-    sessionOn = true;
-    ui.coachBox.textContent = "ابدأنا… عطنا افتتاحية قوية (جملة + دليل).";
+    active = true;
+    say("ابدأ بثقة… الجمهور معك 👀");
   }
 
   function onSessionStop(){
-    sessionOn = false;
-    ui.coachBox.textContent = "تم الإيقاف. احفظ الجلسة أو صدّر التقرير.";
-  }
-
-  function say(msg){
-    ui.coachBox.innerHTML = msg + `<div class="small">Coach: ${style === "dir" ? "Direct" : "Encourage"}</div>`;
-  }
-
-  function pickHint(m){
-    // logic: focus on biggest weakness
-    const gateBad = m.gateState === "صمت" && m.gate < 30;
-    const lowCl = m.clarity < 55;
-    const lowEn = m.energy < 50;
-    const fast = (m.wpm ?? 140) > 170;
-    const slow = (m.wpm ?? 140) < 105;
-
-    if(gateBad){
-      return style==="dir"
-        ? "وقف صمت طويل… خذ نفس وقل جملة قصيرة الآن."
-        : "خُذ نفس… وابدأ بجملة واحدة واضحة، لا تترك فراغ.";
-    }
-    if(lowCl){
-      return style==="dir"
-        ? "وضوحك نازل… جُمَل أقصر + توقفات محسوبة."
-        : "خفّف طول الجمل… وخلك على وقفات قصيرة بين الأفكار.";
-    }
-    if(lowEn){
-      return style==="dir"
-        ? "ارفع الطاقة… صوت أعلى ونبرة أثبت."
-        : "ارفع الحماس شوي… طاقة أعلى = جمهور متفاعل.";
-    }
-    if(fast){
-      return style==="dir"
-        ? "سرعتك عالية… بطّئ."
-        : "ممتاز… بس بطّئ قليلًا عشان الرسالة تثبت.";
-    }
-    if(slow){
-      return style==="dir"
-        ? "سرعتك بطيئة… زِد الإيقاع."
-        : "زيد الإيقاع شوي… خلك أكثر حيوية.";
-    }
-
-    // advanced: encourage structure
-    if((m.energy > 70) && (m.clarity > 70)){
-      return style==="dir"
-        ? "أعطِ رقم/دليل الآن… ثم دعوة واضحة."
-        : "أحسنت! الآن أضف مثال واقعي ثم اختم بدعوة تنفيذية.";
-    }
-
-    return style==="dir"
-      ? "ركز: (رسالة واحدة → دليل → مثال)."
-      : "خل رسالتك واحدة… ثم دعمها بدليل ومثال.";
+    active = false;
+    say("انتهت الجلسة. راجع التقرير 📊");
   }
 
   function tick(m){
-    if(!sessionOn) return;
-    const now = performance.now();
-    if(now - lastMsgAt < 1800) return; // throttle
-    lastMsgAt = now;
-    say(pickHint(m));
+    if(!active) return;
+
+    if(m.gateState === "صمت"){
+      say("في صمت طويل… كمل الفكرة فورًا");
+      return;
+    }
+
+    if(m.wpm > 175){
+      say("سرعة عالية… هدّئ الإيقاع");
+      return;
+    }
+
+    if(m.wpm < 100){
+      say("الإيقاع بطيء… ارفع السرعة شوي");
+      return;
+    }
+
+    if(m.energy < 45){
+      say("الطاقة منخفضة… ارفع النبرة");
+      return;
+    }
+
+    if(m.clarity < 55){
+      say("الجملة غير واضحة… قصّرها");
+      return;
+    }
+
+    if(m.energy > 75 && m.clarity > 70){
+      say("أداء ممتاز 👏 كمل");
+    }
   }
 
-  return { setStyle, onSessionStart, onSessionStop, tick };
+  return {
+    onSessionStart,
+    onSessionStop,
+    tick
+  };
 }
