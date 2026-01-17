@@ -1,716 +1,526 @@
-/* ===============================
-   SpeakXR X-Stage PRO (Static)
-   assets/app.js
-   =============================== */
+/* SpeakXR X-Stage PRO (LIVE) — static, works on GitHub Pages */
 
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* ---------- Router (Tabs) ---------- */
-function go(page) {
+/* ---------------- Router ---------------- */
+function go(page){
   const id = `page-${page}`;
-  $$(".page").forEach((p) => p.classList.remove("active"));
-  const target = document.getElementById(id);
-  if (target) target.classList.add("active");
-
-  // highlight nav
-  $$(".navBtn").forEach((b) => {
-    if (b.dataset.go) b.classList.toggle("active", b.dataset.go === page);
-  });
-
-  // keep hash
-  history.replaceState({}, "", `#${page}`);
+  $$('.page').forEach(p => p.classList.remove('active'));
+  const t = document.getElementById(id);
+  if(t) t.classList.add('active');
+  $$('.navBtn').forEach(b => b.classList.toggle('active', b.dataset.go === page));
+  history.replaceState({}, '', `#${page}`);
 }
+$$('.navBtn').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+window.addEventListener('load', () => go((location.hash || '#home').slice(1)));
+window.addEventListener('hashchange', () => go((location.hash || '#home').slice(1)));
 
-function initRouter() {
-  // buttons with data-go
-  $$(".navBtn").forEach((btn) => {
-    if (!btn.dataset.go) return;
-    btn.addEventListener("click", () => go(btn.dataset.go));
-  });
+/* ---------------- State ---------------- */
+let sessionOn = false;
+let t = 0;
+let timer = null;
 
-  const initial = (location.hash || "#home").slice(1);
-  go(initial);
+let arOn = false, hudOn = true, audOn = false, teleOn = false, vrOn = false, sttOn = false;
+let marks = 0;
 
-  window.addEventListener("hashchange", () => {
-    const p = (location.hash || "#home").slice(1);
-    go(p);
-  });
-}
+const dot = $('#dot'), stTitle = $('#stTitle'), stSub = $('#stSub');
+const pillMode = $('#pillMode'), pillAR = $('#pillAR'), pillAud = $('#pillAud'), pillSTT = $('#pillSTT');
 
-/* ---------- Elements ---------- */
-const els = {
-  // session
-  startBtn: $("#startBtn"),
-  stopBtn: $("#stopBtn"),
-  themeBtn: $("#themeBtn"),
+const cam = $('#cam');
+const hud = $('#hud');
+const audience = $('#audience');
+const tele = $('#tele');
+const vr = $('#vr');
 
-  // toggles
-  toggleHUD: $("#toggleHUD"),
-  toggleAudience: $("#toggleAudience"),
-  toggleTele: $("#toggleTele"),
-  toggleVR: $("#toggleVR"),
+const hudTimer = $('#hudTimer');
+const kTime = $('#kTime'), kWpm = $('#kWpm'), kFiller = $('#kFiller'), kConf = $('#kConf'), kEnergy = $('#kEnergy'), kClarity = $('#kClarity');
 
-  // sliders
-  hudSize: $("#hudSize"),
-  audPower: $("#audPower"),
-  teleSpeed: $("#teleSpeed"),
+const audPower = $('#audPower');
+const teleSpeed = $('#teleSpeed');
+const hudSize = $('#hudSize');
 
-  // stage
-  pillMode: $("#pillMode"),
-  pillAud: $("#pillAud"),
-  pillHud: $("#pillHud"),
-  pillTime: $("#pillTime"),
+const teleText = $('#teleText');
+const scriptInput = $('#scriptInput');
+const teleArea = $('#teleArea');
 
-  hudHint: $("#hudHint"),
-  tele: $("#tele"),
-  teleText: $("#teleText"),
-  lens: $("#lens"),
+const transcriptEl = $('#transcript');
 
-  audience: $("#audience"),
-  audGrid: $("#audGrid"),
+const vu = $('#vu');
+const vuctx = vu.getContext('2d');
+const micState = $('#micState');
+const micPeak = $('#micPeak');
+const micMarks = $('#micMarks');
 
-  vr: $("#vr"),
+const hintOverlay = $('#hintOverlay');
+const hintText = $('#hintText');
 
-  // script
-  scriptInput: $("#scriptInput"),
-  applyScript: $("#applyScript"),
-  wowBtn: $("#wowBtn"),
-
-  // status
-  dot: $("#dot"),
-  stTitle: $("#stTitle"),
-  stSub: $("#stSub"),
-
-  // KPIs
-  kWpm: $("#kWpm"),
-  kConf: $("#kConf"),
-  kFill: $("#kFill"),
-  kTone: $("#kTone"),
-
-  // XR page
-  xrHud: $("#xrHud"),
-  xrAud: $("#xrAud"),
-  xrTele: $("#xrTele"),
-  xrVr: $("#xrVr"),
-  bClap: $("#bClap"),
-  bFocus: $("#bFocus"),
-  bDis: $("#bDis"),
-  randBars: $("#randBars"),
-  teleArea: $("#teleArea"),
-  teleApply: $("#teleApply"),
-  miniOut: $("#miniOut"),
-  pokeCoach: $("#pokeCoach"),
-
-  // Coach
-  chat: $("#chat"),
-  chatInput: $("#chatInput"),
-  sendChat: $("#sendChat"),
-
-  // Judge
-  sClarity: $("#sClarity"),
-  sStab: $("#sStab"),
-  sEng: $("#sEng"),
-  sLang: $("#sLang"),
-  calcJudge: $("#calcJudge"),
-  finalScore: $("#finalScore"),
-  decision: $("#decision"),
-  makeReport: $("#makeReport"),
-  copyReport: $("#copyReport"),
-  report: $("#report"),
-
-  // Reports
-  saveSession: $("#saveSession"),
-  sessions: $("#sessions"),
-  clearSessions: $("#clearSessions"),
-};
-
-/* ---------- Safety: if element missing ---------- */
-function must(el, name) {
-  if (!el) console.warn("Missing element:", name);
-  return el;
-}
-Object.entries(els).forEach(([k, v]) => must(v, k));
-
-/* ---------- State ---------- */
-const state = {
-  sessionOn: false,
-  hudOn: true,
-  audOn: false,
-  teleOn: false,
-  vrOn: false,
-
-  t: 0,
-  tickTimer: null,
-  teleTimer: null,
-
-  // metrics
-  wpm: 0,
-  conf: 0,
-  filler: 0,
-  tone: 0,
-
-  // audience mood
-  audPower: 60,
-
-  // tele
-  telePos: 0,
-};
-
-/* ---------- Helpers ---------- */
-function fmt(sec) {
-  const m = String(Math.floor(sec / 60)).padStart(2, "0");
-  const s = String(sec % 60).padStart(2, "0");
+function fmt(sec){
+  const m = String(Math.floor(sec/60)).padStart(2,'0');
+  const s = String(sec%60).padStart(2,'0');
   return `${m}:${s}`;
 }
 
-function clamp(n, a, b) {
-  return Math.max(a, Math.min(b, n));
+function setStatus(colorVar, title, sub){
+  dot.style.background = `var(${colorVar})`;
+  stTitle.textContent = title;
+  stSub.textContent = sub;
 }
 
-function rand(a, b) {
-  return Math.floor(Math.random() * (b - a + 1)) + a;
+function showHint(text){
+  hintText.textContent = text;
+  hintOverlay.hidden = false;
+}
+function hideHint(){
+  hintOverlay.hidden = true;
 }
 
-function setStatus(mode, title, sub) {
-  // mode: ok|warn|bad
-  const color =
-    mode === "ok" ? "var(--ok)" : mode === "bad" ? "var(--bad)" : "var(--warn)";
-  if (els.dot) {
-    els.dot.style.background = color;
-    els.dot.style.boxShadow =
-      mode === "ok"
-        ? "0 0 0 6px rgba(33,230,164,.14)"
-        : mode === "bad"
-        ? "0 0 0 6px rgba(255,77,109,.14)"
-        : "0 0 0 6px rgba(255,206,58,.14)";
-  }
-  if (els.stTitle) els.stTitle.textContent = title;
-  if (els.stSub) els.stSub.textContent = sub;
-}
+$('#closeHint').addEventListener('click', hideHint);
+$('#retryPerms').addEventListener('click', async ()=>{ hideHint(); await ensureAR(); });
 
-/* ---------- Audience Engine ---------- */
-function buildAudience(power = 60) {
-  if (!els.audGrid) return;
-
-  els.audGrid.innerHTML = "";
-  const cols = 10;
-  const total = clamp(power, 20, 120);
-  const rows = Math.ceil(total / cols);
-
-  els.audGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-  for (let i = 0; i < rows * cols; i++) {
-    const sp = document.createElement("span");
-    sp.style.opacity = (Math.random() * 0.45 + 0.35).toFixed(2);
-    els.audGrid.appendChild(sp);
-  }
-}
-
-function updateAudienceMood() {
-  if (!els.audGrid) return;
-
-  const power = state.audPower;
-  if (els.pillAud) els.pillAud.textContent = `AUD: ${power}`;
-
-  const nodes = $$("#audGrid span");
-  nodes.forEach((sp) => {
-    const r = Math.random() * 100;
-    const on = r < power;
-    sp.style.opacity = on ? "0.95" : "0.35";
-    sp.style.transform = on ? "translateY(-1px)" : "none";
-  });
-
-  // audience also influences confidence slightly
-  state.conf = clamp(state.conf + (power > 70 ? 1 : -1), 0, 100);
-}
-
-/* ---------- Teleprompter ---------- */
-function setTeleText(text) {
-  const t = (text || "").trim();
-  if (els.teleText) els.teleText.textContent = t || "اكتب نصك تحت… ثم تطبيق النص.";
-}
-
-function startTeleScroll() {
-  stopTeleScroll();
-  state.telePos = 0;
-
-  const speed = () => Number(els.teleSpeed?.value || 70);
-  state.teleTimer = setInterval(() => {
-    if (!state.sessionOn || !state.teleOn) return;
-    // move telePos
-    state.telePos += Math.max(1, Math.floor(speed() / 30));
-    // simulate scrolling by changing hint area / simple transform
-    if (els.teleText) {
-      els.teleText.style.transform = `translateY(-${Math.min(state.telePos, 120)}px)`;
-    }
-    if (state.telePos > 220) state.telePos = 0;
-  }, 220);
-}
-
-function stopTeleScroll() {
-  if (state.teleTimer) clearInterval(state.teleTimer);
-  state.teleTimer = null;
-  if (els.teleText) els.teleText.style.transform = "translateY(0)";
-}
-
-/* ---------- HUD ---------- */
-function setHudSize(px) {
-  const v = Number(px || 18);
-  if (els.lens) els.lens.style.fontSize = `${v}px`;
-}
-
-function hudHint(msg) {
-  if (!els.hudHint) return;
-  els.hudHint.textContent = msg;
-}
-
-/* ---------- WOW Demo (Particles-ish + glow pulse) ---------- */
-function wowPulse() {
-  if (!els.lens) return;
-  els.lens.animate(
-    [
-      { transform: "scale(1)", filter: "saturate(1)" },
-      { transform: "scale(1.01)", filter: "saturate(1.15)" },
-      { transform: "scale(1)", filter: "saturate(1)" },
-    ],
-    { duration: 850, easing: "ease-in-out" }
+/* ---------------- Theme ---------------- */
+let dark = true;
+$('#themeBtn').addEventListener('click', ()=>{
+  dark = !dark;
+  document.documentElement.style.filter = dark ? 'none' : 'invert(1) hue-rotate(180deg)';
+});
+$('#helpBtn').addEventListener('click', ()=>{
+  showHint(
+`1) AR Camera: وافق على الكاميرا.\n2) تسجيل: وافق على الميك.\n3) STT: يدعمها Chrome غالبًا.\nإذا رفضت صلاحية: افتح Site settings واسمح.`
   );
-}
+});
 
-/* ---------- Metrics (Mock realistic) ---------- */
-function computeMetricsTick() {
-  // WPM baseline 120-160
-  const base = 140 + rand(-18, 18);
-  state.wpm = clamp(base + (state.sessionOn ? rand(-10, 10) : 0), 90, 210);
+/* ---------------- HUD sizing ---------------- */
+hudSize.addEventListener('input', ()=>{
+  hud.style.fontSize = `${hudSize.value}px`;
+});
 
-  // filler increases when wpm too high or confidence low
-  const tooFast = state.wpm > 170 ? 1 : 0;
-  state.filler = clamp(state.filler + rand(-1, 2) + tooFast, 0, 30);
-
-  // tone (0-100) affected by confidence
-  state.tone = clamp(50 + Math.floor(state.conf / 2) + rand(-10, 10), 0, 100);
-
-  // confidence evolves
-  state.conf = clamp(state.conf + rand(-2, 3) - (tooFast ? 1 : 0), 0, 100);
-
-  // update KPIs
-  if (els.kWpm) els.kWpm.textContent = String(state.wpm);
-  if (els.kConf) els.kConf.textContent = `${state.conf}%`;
-  if (els.kFill) els.kFill.textContent = String(state.filler);
-  if (els.kTone) els.kTone.textContent = String(state.tone);
-
-  // update pills
-  if (els.pillMode) els.pillMode.textContent = state.sessionOn ? "MODE: LIVE" : "MODE: READY";
-  if (els.pillHud) els.pillHud.textContent = `HUD: ${state.hudOn ? "ON" : "OFF"}`;
-
-  // dynamic hints
-  if (state.wpm > 170) hudHint("سرعتك عالية… خذ نفس وخفّف 10% 🎯");
-  else if (state.filler > 14) hudHint("قلّل: (يعني/اممم)… استبدلها بسكتة قصيرة ✨");
-  else if (state.conf < 35) hudHint("ثبّت نظرك للأمام… وتكلم بجملة قصيرة قوية 💪");
-  else hudHint("ممتاز… كمّل بنفس النسق 🔥");
-}
-
-/* ---------- Session Controls ---------- */
-function startSession() {
-  if (state.sessionOn) return;
-  state.sessionOn = true;
-  state.t = 0;
-
-  setStatus("ok", "جلسة شغالة", "HUD + محاكاة XR تعمل الآن");
-  if (els.startBtn) els.startBtn.disabled = true;
-  if (els.stopBtn) els.stopBtn.disabled = false;
-
-  // start tick
-  if (state.tickTimer) clearInterval(state.tickTimer);
-  state.tickTimer = setInterval(() => {
-    state.t++;
-    if (els.pillTime) els.pillTime.textContent = fmt(state.t);
-    computeMetricsTick();
-    if (state.audOn) updateAudienceMood();
-  }, 1000);
-
-  // tele
-  if (state.teleOn) startTeleScroll();
-
-  // wow
-  wowPulse();
-}
-
-function stopSession() {
-  if (!state.sessionOn) return;
-  state.sessionOn = false;
-
-  setStatus("warn", "تم الإيقاف", "تقدر تحفظ الجلسة أو تولّد تقرير");
-  if (els.startBtn) els.startBtn.disabled = false;
-  if (els.stopBtn) els.stopBtn.disabled = true;
-
-  if (state.tickTimer) clearInterval(state.tickTimer);
-  state.tickTimer = null;
-
-  stopTeleScroll();
-}
-
-/* ---------- Toggles ---------- */
-function toggleHUD() {
-  state.hudOn = !state.hudOn;
-  if (els.hud) els.hud.style.display = state.hudOn ? "block" : "none";
-  setStatus("ok", state.hudOn ? "HUD شغال" : "HUD مقفول", "تقدر تفتحه بأي وقت");
-  wowPulse();
-}
-
-function toggleAudience() {
-  state.audOn = !state.audOn;
-  if (els.audience) els.audience.style.display = state.audOn ? "block" : "none";
-  if (state.audOn) {
-    buildAudience(state.audPower);
-    updateAudienceMood();
-    setStatus("ok", "الجمهور شغال", "مزاجه يتغير حسب الأداء 😄");
-  } else {
-    setStatus("ok", "الجمهور مقفول", "خفّ التوتر… ما أحد يطالع 🤝");
-  }
-  wowPulse();
-}
-
-function toggleTele() {
-  state.teleOn = !state.teleOn;
-  if (els.tele) els.tele.style.display = state.teleOn ? "block" : "none";
-  if (state.teleOn) {
-    startTeleScroll();
-    setStatus("ok", "التلقين شغال", "السرعة من السلايدر");
-  } else {
-    stopTeleScroll();
-    setStatus("ok", "التلقين مقفول", "تقدر ترجع له");
-  }
-  wowPulse();
-}
-
-function toggleVR() {
-  state.vrOn = !state.vrOn;
-  if (els.vr) els.vr.style.display = state.vrOn ? "block" : "none";
-  setStatus("ok", state.vrOn ? "VR Concept ON" : "VR Concept OFF", "محاكاة بدون نظارة");
-  wowPulse();
-}
-
-/* ---------- XR page extras ---------- */
-function randomizeBars() {
-  const a = rand(15, 100);
-  const b = rand(15, 100);
-  const c = rand(15, 100);
-  if (els.bClap) els.bClap.style.transform = `scaleX(${a / 100})`;
-  if (els.bFocus) els.bFocus.style.transform = `scaleX(${b / 100})`;
-  if (els.bDis) els.bDis.style.transform = `scaleX(${c / 100})`;
-  if (els.miniOut) els.miniOut.textContent = `تفاعل الجمهور: تصفيق ${a}% • تركيز ${b}% • تشتت ${c}%`;
-}
-
-/* ---------- Coach (Mock smart) ---------- */
-function pushChat(text, who = "bot") {
-  if (!els.chat) return;
-  const div = document.createElement("div");
-  div.className = `msg ${who}`;
-  div.textContent = text;
-  els.chat.appendChild(div);
-  els.chat.scrollTop = els.chat.scrollHeight;
-}
-
-function coachAnswer(q) {
-  const s = (q || "").toLowerCase();
-
-  if (s.includes("مقدمة") || s.includes("ابدأ") || s.includes("افتتاح")) {
-    return "ابدأ بجملة واحدة قوية + توقف نصف ثانية. مثال: (اليوم… راح أوريكم كيف تتحول الثقة إلى أداء). ثم ادخل على 3 نقاط واضحة.";
-  }
-  if (s.includes("توتر") || s.includes("خوف") || s.includes("ارتباك")) {
-    return "قاعدة ذهبية: نفس عميق 4 ثواني، ثم جملة قصيرة. لا تكثر تفاصيل. خلي عينك على نقطة ثابتة فوق الجمهور.";
-  }
-  if (s.includes("سرعة") || s.includes("wpm")) {
-    return "هدفك 120–160 كلمة/دقيقة. إذا تعديت 170: اقسم الفكرة لجملتين، وخذ سكتة بدل (اممم).";
-  }
-  if (s.includes("تحكيم") || s.includes("درجات") || s.includes("لجنة")) {
-    return "ركز على: وضوح (ترتيب)، ثبات (نبرة)، تفاعل (سؤال للجمهور)، لغة (عبارات دقيقة). لا تحاول ترضي الجميع… رضِ المعايير.";
-  }
-  return "نصيحة سريعة: قلّل الحشو، ارفع الثقة، وخلي نهاية كل فقرة (قرار/خلاصة) — الجمهور يحب اللي يفهمه بسرعة 😄";
-}
-
-/* ---------- Judge ---------- */
-function calcJudge() {
-  const c = Number(els.sClarity?.value || 0);
-  const s = Number(els.sStab?.value || 0);
-  const e = Number(els.sEng?.value || 0);
-  const l = Number(els.sLang?.value || 0);
-
-  // weighted score
-  const score = Math.round(c * 0.28 + s * 0.26 + e * 0.24 + l * 0.22);
-
-  let decision = "يمرّ";
-  if (score >= 85) decision = "ممتاز — جاهز للعرض الرسمي";
-  else if (score >= 70) decision = "جيد جدًا — يحتاج صقل بسيط";
-  else if (score >= 55) decision = "جيد — يحتاج تدريب إضافي";
-  else decision = "غير جاهز — ركّز على الوضوح والثبات";
-
-  if (els.finalScore) els.finalScore.textContent = score;
-  if (els.decision) els.decision.textContent = decision;
-
-  return { score, decision, c, s, e, l };
-}
-
-function buildReport() {
-  const r = calcJudge();
-  const txt =
-`SpeakXR X-Stage PRO — Jury Report
---------------------------------
-Score: ${r.score}
-Decision: ${r.decision}
-
-Breakdown:
-- Clarity: ${r.c}
-- Stability: ${r.s}
-- Engagement: ${r.e}
-- Language: ${r.l}
-
-Session Metrics (Mock):
-- WPM: ${state.wpm}
-- Confidence: ${state.conf}%
-- Fillers: ${state.filler}
-- Tone: ${state.tone}
-
-Recommendations:
-1) Keep WPM within 120–160.
-2) Replace fillers with short pause.
-3) End each segment with a clear takeaway.
-`;
-  if (els.report) els.report.textContent = txt;
-  return txt;
-}
-
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    setStatus("ok", "تم النسخ", "التقرير جاهز للصق");
-  } catch {
-    setStatus("warn", "ماقدر أنسخ", "انسخ يدويًا من مربع التقرير");
+/* ---------------- Teleprompter ---------------- */
+function applyTele(text){
+  const v = (text || '').trim();
+  teleText.textContent = v || 'اكتب النص ثم “تطبيق النص”.';
+  if(teleOn){
+    tele.removeAttribute('aria-hidden');
   }
 }
+$('#applyScript').addEventListener('click', ()=> applyTele(scriptInput.value));
+$('#teleApply').addEventListener('click', ()=> applyTele(teleArea.value));
+$('#teleClear').addEventListener('click', ()=> { teleArea.value=''; applyTele(''); });
 
-/* ---------- Sessions Storage ---------- */
-const KEY = "speakxr_sessions_v1";
-
-function loadSessions() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+/* ---------------- Toggles ---------------- */
+function syncPills(){
+  pillMode.textContent = `MODE: ${sessionOn ? 'LIVE' : 'READY'}`;
+  pillAR.textContent = `AR: ${arOn ? 'ON' : 'OFF'}`;
+  pillAud.textContent = `AUD: ${audPower.value}`;
+  pillSTT.textContent = `STT: ${sttOn ? 'ON' : 'OFF'}`;
+}
+function setHud(on){
+  hudOn = on;
+  hud.style.display = hudOn ? 'block' : 'none';
+}
+function setTele(on){
+  teleOn = on;
+  if(teleOn){
+    tele.removeAttribute('aria-hidden');
+    tele.style.display = 'block';
+  }else{
+    tele.setAttribute('aria-hidden', 'true');
+    tele.style.display = 'none';
   }
 }
-
-function saveSessions(list) {
-  localStorage.setItem(KEY, JSON.stringify(list));
+function setAudience(on){
+  audOn = on;
+  audience.style.display = audOn ? 'block' : 'none';
+  audience.setAttribute('aria-hidden', audOn ? 'false' : 'true');
+  if(audOn) startAudience();
+}
+function setVR(on){
+  vrOn = on;
+  vr.style.display = vrOn ? 'block' : 'none';
+  vr.setAttribute('aria-hidden', vrOn ? 'false' : 'true');
+}
+async function setAR(on){
+  arOn = on;
+  if(arOn){
+    await ensureAR();
+    cam.classList.add('on');
+  }else{
+    cam.classList.remove('on');
+    stopAR();
+  }
+  syncPills();
+}
+async function setSTT(on){
+  sttOn = on;
+  if(sttOn){
+    startSTT();
+  }else{
+    stopSTT();
+  }
+  syncPills();
 }
 
-function renderSessions() {
-  if (!els.sessions) return;
-  const list = loadSessions();
-  els.sessions.innerHTML = "";
+$('#toggleAR').addEventListener('click', ()=> setAR(!arOn));
+$('#toggleHUD').addEventListener('click', ()=> setHud(!hudOn));
+$('#toggleAudience').addEventListener('click', ()=> setAudience(!audOn));
+$('#toggleTele').addEventListener('click', ()=> setTele(!teleOn));
+$('#toggleVR').addEventListener('click', ()=> setVR(!vrOn));
+$('#toggleSTT').addEventListener('click', ()=> setSTT(!sttOn));
 
-  if (!list.length) {
-    els.sessions.innerHTML = `<div class="muted">لا يوجد جلسات محفوظة… احفظ جلسة من زر “حفظ الجلسة”.</div>`;
+$('#xrAR').addEventListener('click', ()=> setAR(!arOn));
+$('#xrHUD').addEventListener('click', ()=> setHud(!hudOn));
+$('#xrAud').addEventListener('click', ()=> setAudience(!audOn));
+$('#xrTele').addEventListener('click', ()=> setTele(!teleOn));
+$('#xrVR').addEventListener('click', ()=> setVR(!vrOn));
+$('#xrSTT').addEventListener('click', ()=> setSTT(!sttOn));
+
+audPower.addEventListener('input', ()=> syncPills());
+
+/* ---------------- Session Timer ---------------- */
+function tick(){
+  t++;
+  const time = fmt(t);
+  hudTimer.textContent = time;
+  kTime.textContent = time;
+
+  // WPM estimate: words counted from transcript or script
+  const txt = (transcriptText || scriptInput.value || teleArea.value || '').trim();
+  const words = txt ? txt.split(/\s+/).filter(Boolean).length : 0;
+  const minutes = Math.max(1/60, t/60);
+  const wpm = Math.round(words / minutes);
+
+  // filler count
+  const fillers = countFillers(txt);
+
+  // energy/clarity from mic peak + wpm stability (simple heuristics)
+  const peak = lastPeak || 0;
+  const energy = clamp(Math.round(peak * 120), 0, 100);
+  const clarity = clamp(Math.round(60 + (peak*60) - (fillers*2) + (wpm>160?-10:0)), 0, 100);
+
+  // confidence: blend energy + clarity + audience power
+  const conf = clamp(Math.round((energy*0.35) + (clarity*0.45) + (Number(audPower.value)*0.20)), 0, 100);
+
+  kWpm.textContent = isFinite(wpm) ? wpm : 0;
+  kFiller.textContent = fillers;
+  kEnergy.textContent = energy;
+  kClarity.textContent = clarity;
+  kConf.textContent = `${conf}%`;
+
+  // update audience dynamics
+  if(audOn) updateAudience(conf, wpm, fillers);
+}
+
+$('#startBtn').addEventListener('click', ()=>{
+  if(sessionOn) return;
+  sessionOn = true;
+  t = 0;
+  marks = 0;
+  micMarks.textContent = '0';
+  setStatus('--ok', 'LIVE', 'الجلسة شغّالة… ورّنا الوحش 👑');
+  $('#stopBtn').disabled = false;
+  $('#startBtn').disabled = true;
+
+  syncPills();
+  hudTimer.textContent = '00:00';
+  kTime.textContent = '00:00';
+
+  timer = setInterval(tick, 1000);
+});
+
+$('#stopBtn').addEventListener('click', ()=>{
+  if(!sessionOn) return;
+  sessionOn = false;
+  if(timer) clearInterval(timer);
+  timer = null;
+  setStatus('--warn', 'متوقف', 'احفظ الجلسة أو سو تقرير');
+  $('#stopBtn').disabled = true;
+  $('#startBtn').disabled = false;
+  syncPills();
+});
+
+/* ---------------- WOW Buttons ---------------- */
+$('#wowBtn').addEventListener('click', ()=>{
+  go('xr');
+  setHud(true);
+  setTele(true);
+  setAudience(true);
+  setVR(false);
+  audPower.value = 86;
+  syncPills();
+  pushBot(`شغّلت لك وضع WOW: HUD + تلقين + جمهور. الآن اضغط “بدء جلسة” وابدأ تتكلم.`);
+});
+
+$('#boostBtn').addEventListener('click', ()=>{
+  audPower.value = clamp(Number(audPower.value) + 10, 0, 100);
+  syncPills();
+});
+
+$('#helpBtn').addEventListener('dblclick', ()=> pushBot('لا تضرب زر المساعدة مرتين… بيحسبك متوتر 😄'));
+
+/* ---------------- AR Camera ---------------- */
+let camStream = null;
+
+async function ensureAR(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showHint('جهازك/متصفحك ما يدعم getUserMedia. جرّب Chrome.');
+    arOn = false; syncPills();
     return;
   }
-
-  list.slice().reverse().forEach((s) => {
-    const row = document.createElement("div");
-    row.className = "sessionItem";
-    row.innerHTML = `
-      <div>
-        <b>${s.title}</b>
-        <div class="muted" style="margin-top:4px">${s.time}</div>
-      </div>
-      <div>
-        <b>${s.score ?? "—"}</b>
-        <div class="muted" style="margin-top:4px">${s.decision ?? ""}</div>
-      </div>
-    `;
-    els.sessions.appendChild(row);
-  });
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio:false });
+    cam.srcObject = camStream;
+    cam.play().catch(()=>{});
+  }catch(e){
+    arOn = false; syncPills();
+    showHint('الكاميرا رفضت الصلاحية. افتح إعدادات الموقع (Site settings) واسمح Camera ثم Retry.');
+  }
+}
+function stopAR(){
+  if(camStream){
+    camStream.getTracks().forEach(t => t.stop());
+    camStream = null;
+  }
+  cam.srcObject = null;
 }
 
-function saveCurrentSession() {
-  const list = loadSessions();
-  const now = new Date();
-  const time = now.toLocaleString("ar-SA");
-  const judge = calcJudge();
-  const item = {
-    id: String(now.getTime()),
-    title: `جلسة #${list.length + 1}`,
-    time,
-    wpm: state.wpm,
-    conf: state.conf,
-    filler: state.filler,
-    tone: state.tone,
-    score: judge.score,
-    decision: judge.decision,
+/* ---------------- Microphone + Visualizer + Recording ---------------- */
+let audioStream = null;
+let audioCtx = null;
+let analyser = null;
+let dataArr = null;
+let raf = null;
+let lastPeak = 0;
+
+let mediaRecorder = null;
+let chunks = [];
+let recording = false;
+
+async function ensureMic(){
+  if(!navigator.mediaDevices?.getUserMedia){
+    showHint('المايك غير مدعوم هنا. جرّب Chrome.');
+    return false;
+  }
+  try{
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(audioStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    dataArr = new Uint8Array(analyser.frequencyBinCount);
+    src.connect(analyser);
+    drawVU();
+    return true;
+  }catch(e){
+    showHint('المايك رفض الصلاحية. اسمح Microphone من Site settings ثم جرّب.');
+    return false;
+  }
+}
+
+function drawVU(){
+  if(!analyser) return;
+  analyser.getByteFrequencyData(dataArr);
+  vuctx.clearRect(0,0,vu.width,vu.height);
+
+  // background
+  vuctx.fillStyle = 'rgba(255,255,255,0.04)';
+  vuctx.fillRect(0,0,vu.width,vu.height);
+
+  // bars
+  const bars = 56;
+  const step = Math.floor(dataArr.length / bars);
+  let peak = 0;
+  for(let i=0;i<bars;i++){
+    const v = dataArr[i*step] / 255;
+    peak = Math.max(peak, v);
+    const h = Math.max(2, v * (vu.height-10));
+    const x = (i*(vu.width/bars));
+    vuctx.fillStyle = `rgba(33,230,164,${0.35 + v*0.55})`;
+    vuctx.fillRect(x, vu.height-h, (vu.width/bars)-2, h);
+  }
+  lastPeak = peak;
+  micPeak.textContent = peak.toFixed(2);
+
+  raf = requestAnimationFrame(drawVU);
+}
+
+$('#recBtn').addEventListener('click', async ()=>{
+  if(!recording){
+    const ok = await ensureMic();
+    if(!ok) return;
+
+    // recorder
+    try{
+      chunks = [];
+      mediaRecorder = new MediaRecorder(audioStream);
+      mediaRecorder.ondataavailable = (e)=> chunks.push(e.data);
+      mediaRecorder.onstop = ()=> {
+        const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        pushBot(`تم حفظ التسجيل. (تحميل)`);
+        // create a download link message
+        addDownloadLink(url, `speakxr_record_${Date.now()}.webm`);
+      };
+      mediaRecorder.start();
+      recording = true;
+      micState.textContent = 'Recording';
+      $('#recBtn').textContent = '⏹️ إيقاف التسجيل';
+      setStatus('--ok', 'Recording', 'التسجيل شغال…');
+    }catch(e){
+      showHint('التسجيل غير مدعوم على هذا المتصفح. جرّب Chrome.');
+    }
+  }else{
+    // stop
+    recording = false;
+    micState.textContent = 'Idle';
+    $('#recBtn').textContent = '🎙️ تسجيل';
+    setStatus('--warn', 'Stopped', 'تم إيقاف التسجيل.');
+    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  }
+});
+
+function stopMicAll(){
+  if(raf) cancelAnimationFrame(raf);
+  raf = null;
+  try{ audioCtx?.close(); }catch{}
+  audioCtx = null;
+  analyser = null;
+  dataArr = null;
+
+  if(audioStream){
+    audioStream.getTracks().forEach(t => t.stop());
+    audioStream = null;
+  }
+}
+window.addEventListener('beforeunload', ()=> {
+  stopAR();
+  stopMicAll();
+  stopSTT();
+});
+
+$('#markBtn').addEventListener('click', ()=>{
+  marks++;
+  micMarks.textContent = String(marks);
+  pushBot(`تم وضع علامة #${marks} عند ${fmt(t)} ✅`);
+});
+
+/* ---------------- STT (Speech to Text) ---------------- */
+let rec = null;
+let transcriptText = '';
+
+function startSTT(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    showHint('SpeechRecognition غير مدعوم هنا. جرّب Chrome.');
+    sttOn = false; syncPills();
+    return;
+  }
+  rec = new SR();
+  rec.lang = 'ar-SA';
+  rec.interimResults = true;
+  rec.continuous = true;
+
+  rec.onresult = (e)=>{
+    let finalText = '';
+    let interim = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const txt = e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText += txt + ' ';
+      else interim += txt;
+    }
+    if(finalText.trim()){
+      transcriptText += finalText;
+    }
+    transcriptEl.textContent = (transcriptText + '\n' + (interim ? `… ${interim}` : '')).trim() || '—';
   };
-  list.push(item);
-  saveSessions(list);
-  renderSessions();
-  setStatus("ok", "تم حفظ الجلسة", "تلقاها في صفحة التقارير");
+
+  rec.onerror = ()=>{
+    // if permission etc
+  };
+  rec.onend = ()=>{
+    // auto-restart while sttOn
+    if(sttOn){
+      try{ rec.start(); }catch{}
+    }
+  };
+
+  try{ rec.start(); }catch{}
+  pushBot('تم تشغيل تحويل الكلام لنص (STT).');
 }
-
-/* ---------- Theme Toggle (simple) ---------- */
-function toggleTheme() {
-  document.body.classList.toggle("themeAlt");
-  setStatus("ok", "تم تبديل النمط", "ذوق… أنت صاحب منصة 😄");
-  wowPulse();
+function stopSTT(){
+  try{ rec?.stop(); }catch{}
+  rec = null;
 }
+$('#copyTranscript').addEventListener('click', async ()=>{
+  const txt = transcriptEl.textContent || '';
+  try{ await navigator.clipboard.writeText(txt); pushBot('تم النسخ ✅'); }catch{ pushBot('النسخ فشل.'); }
+});
+$('#clearTranscript').addEventListener('click', ()=>{
+  transcriptText = '';
+  transcriptEl.textContent = '—';
+});
 
-/* ---------- Wire Events ---------- */
-function wire() {
-  // session
-  els.startBtn?.addEventListener("click", startSession);
-  els.stopBtn?.addEventListener("click", stopSession);
+/* ---------------- Audience (canvas particles) ---------------- */
+const audCanvas = $('#aud');
+const auctx = audCanvas.getContext('2d');
+let audRAF = null;
+let particles = [];
+let audClaps = 0;
 
-  // theme
-  els.themeBtn?.addEventListener("click", toggleTheme);
-
-  // toggles
-  els.toggleHUD?.addEventListener("click", toggleHUD);
-  els.toggleAudience?.addEventListener("click", toggleAudience);
-  els.toggleTele?.addEventListener("click", toggleTele);
-  els.toggleVR?.addEventListener("click", toggleVR);
-
-  // sliders
-  els.hudSize?.addEventListener("input", (e) => setHudSize(e.target.value));
-  els.audPower?.addEventListener("input", (e) => {
-    state.audPower = Number(e.target.value);
-    if (state.audOn) updateAudienceMood();
-  });
-  els.teleSpeed?.addEventListener("input", () => {
-    if (state.teleOn) startTeleScroll();
-  });
-
-  // script apply
-  els.applyScript?.addEventListener("click", () => {
-    setTeleText(els.scriptInput?.value || "");
-    setStatus("ok", "تم تطبيق النص", "التلقين جاهز");
-    wowPulse();
-  });
-
-  // wow
-  els.wowBtn?.addEventListener("click", () => {
-    randomizeBars();
-    if (!state.audOn) toggleAudience();
-    if (!state.teleOn) toggleTele();
-    wowPulse();
-    setStatus("ok", "WOW Demo", "المنصة الآن “تتحرك” 👏");
-  });
-
-  // XR page toggles mirror
-  els.xrHud?.addEventListener("click", toggleHUD);
-  els.xrAud?.addEventListener("click", toggleAudience);
-  els.xrTele?.addEventListener("click", toggleTele);
-  els.xrVr?.addEventListener("click", toggleVR);
-
-  els.randBars?.addEventListener("click", randomizeBars);
-
-  // tele apply from XR
-  els.teleApply?.addEventListener("click", () => {
-    setTeleText(els.teleArea?.value || "");
-    setStatus("ok", "تم تطبيق التلقين", "جاهز على المسرح");
-  });
-
-  // poke coach
-  els.pokeCoach?.addEventListener("click", () => {
-    const tip = coachAnswer("نصيحة");
-    els.miniOut && (els.miniOut.textContent = tip);
-    setStatus("ok", "نصيحة جاهزة", "روح صفحة المدرب لو تبي أكثر");
-  });
-
-  // Coach chat
-  els.sendChat?.addEventListener("click", () => {
-    const q = (els.chatInput?.value || "").trim();
-    if (!q) return;
-    pushChat(q, "me");
-    els.chatInput.value = "";
-    setTimeout(() => pushChat(coachAnswer(q), "bot"), 250);
-  });
-  els.chatInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") els.sendChat?.click();
-  });
-
-  // Judge
-  els.calcJudge?.addEventListener("click", () => {
-    const r = calcJudge();
-    setStatus("ok", "تم حساب الدرجة", `النتيجة: ${r.score}`);
-    wowPulse();
-  });
-  els.makeReport?.addEventListener("click", () => {
-    const txt = buildReport();
-    setStatus("ok", "تم توليد التقرير", "تقدر تنسخه أو تحفظ جلسة");
-    wowPulse();
-    return txt;
-  });
-  els.copyReport?.addEventListener("click", () => {
-    const txt = els.report?.textContent || buildReport();
-    copyText(txt);
-  });
-
-  // Reports
-  els.saveSession?.addEventListener("click", saveCurrentSession);
-  els.clearSessions?.addEventListener("click", () => {
-    localStorage.removeItem(KEY);
-    renderSessions();
-    setStatus("warn", "تم المسح", "كل الجلسات انحذفت");
-  });
-
-  // init visuals
-  setHudSize(els.hudSize?.value || 18);
-  state.audPower = Number(els.audPower?.value || 60);
-  buildAudience(state.audPower);
-  randomizeBars();
+function resizeAud(){
+  // keep internal resolution sharp-ish
+  const w = audCanvas.clientWidth || 900;
+  const h = audCanvas.clientHeight || 320;
+  audCanvas.width = Math.floor(w * devicePixelRatio);
+  audCanvas.height = Math.floor(h * devicePixelRatio);
+  auctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
 }
+window.addEventListener('resize', resizeAud);
 
-/* ---------- Boot ---------- */
-function boot() {
-  initRouter();
-  wire();
-  renderSessions();
-  setStatus("ok", "جاهز", "اضغط “بدء جلسة” وخلنا نطلع أداء رسمي");
-  // seed
-  state.conf = rand(45, 70);
-  computeMetricsTick();
-}
-window.addEventListener("DOMContentLoaded", boot);
-
-/* ---------- Optional alt theme ---------- */
-(() => {
-  const css = document.createElement("style");
-  css.textContent = `
-  body.themeAlt{
-    background:
-      radial-gradient(1200px 600px at 20% 10%, #ffb30022, transparent 55%),
-      radial-gradient(900px 500px at 90% 25%, #00d4ff22, transparent 55%),
-      radial-gradient(900px 600px at 40% 90%, #ff4d6d18, transparent 60%),
-      linear-gradient(180deg, #070815, #101b3c);
+function initAudience(){
+  resizeAud();
+  particles = [];
+  const n = 120;
+  for(let i=0;i<n;i++){
+    particles.push({
+      x: Math.random()* (audCanvas.width/devicePixelRatio),
+      y: Math.random()* (audCanvas.height/devicePixelRatio),
+      r: 2 + Math.random()*3,
+      vx: (-0.6 + Math.random()*1.2),
+      vy: (-0.4 + Math.random()*0.8),
+      o: 0.25 + Math.random()*0.65
+    });
   }
-  .msg{
-    max-width:78%;
-    padding:10px 12px;
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.06);
-    line-height:1.6;
-    margin: 10px 0;
-  }
-  .msg.me{margin-right:auto; background: rgba(124,92,255,.14); border-color: rgba(124,92,255,.25)}
-  .msg.bot{margin-left:auto; background: rgba(33,230,164,.12); border-color: rgba(33,230,164,.22)}
-  .sessionItem{
-    padding:12px;
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(0,0,0,.20);
-    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    margin:10px 0;
-  }
-  `;
-  document.head.appendChild(css);
-})();
+}
+
+function startAudience(){
+  if(!particles.length) initAudience();
+  if(audRAF) return;
+  const loop = ()=>{
+    drawAudience();
+    audRAF = requestAnimationFrame(loop);
+  };
+  loop();
+}
+function stopAudience(){
+  if(audRAF) cancelAnimationFrame(audRAF);
+  audRAF = null;
+}
+
+function drawAudience(){
+  const w = audCanvas.width/devicePixelRatio;
+  const h = audCanvas.height/devicePixelRatio;
+  auctx.clearRect(0,0,w,h);
+
+  // bg glow
+  const g = auctx.createRadialGradient(w*0.5,h*0.3,30,w*0.5,h*0.5,Math.max(w,h));
+  g.addColorStop(0,'rgba(124,92,255,0.18)');
+  g.addColorStop(1,'rgba(0,0,0,0.0)');
+  auctx.fillStyle = g;
+  auctx.fillRect(0,0,w,h);
+
+  const power = Number(audPower.value);
+  const speed = 0.3 + power/220;
+
+  for(const p of particles){
+    p.x += p.vx*speed;
+    p
