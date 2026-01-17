@@ -1,1 +1,378 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#070815"/>
+  <title>SpeakXR — WOW X-Stage</title>
+  <meta name="description" content="منصة تدريب XR/AR/VR (Static) — تنقل فعلي + HUD + جمهور + تلقين + مدرب + تحكيم + تقارير."/>
 
+  <!-- IMPORTANT: مسارات ثابتة للروت -->
+  <link rel="stylesheet" href="./assets/style.css"/>
+</head>
+
+<body>
+  <!-- Ambient -->
+  <div class="bg"></div>
+  <div class="gridGlow"></div>
+  <div class="noise"></div>
+
+  <!-- Boot overlay (يتأكد لك أن JS شغال) -->
+  <div class="boot" id="boot">
+    <div class="bootCard">
+      <div class="bootTop">
+        <div class="bootBrand">
+          <div class="bootLogo">SX</div>
+          <div>
+            <div class="bootTitle">SpeakXR — WOW X-Stage</div>
+            <div class="bootSub">جاري تفعيل المنصة…</div>
+          </div>
+        </div>
+        <div class="bootChip" id="bootChip">INIT</div>
+      </div>
+
+      <div class="bootBar"><i></i></div>
+      <div class="bootHint" id="bootHint">
+        إذا بقيت هذه الشاشة: غالبًا عندك مشكلة مسار (assets) أو حفظ الملف كـ RTF.
+      </div>
+
+      <div class="bootMini">
+        <span>✅ الملفات المطلوبة:</span>
+        <code>/index.html</code>
+        <code>/assets/style.css</code>
+        <code>/assets/app.js</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="wrap topbarIn">
+      <div class="brand">
+        <div class="logo">SX</div>
+        <div class="brandText">
+          <div class="brandLine">
+            <span class="brandName">SpeakXR</span>
+            <span class="brandSub">WOW X-Stage</span>
+            <span class="chip">PRO</span>
+          </div>
+          <div class="brandMeta">XR HUD • Audience Engine • Coach • Jury • Reports</div>
+        </div>
+      </div>
+
+      <!-- Tabs (تنقل فعلي داخل الصفحة) -->
+      <nav class="tabs" id="tabs">
+        <button class="tab on" data-route="home">⚡ الرئيسية</button>
+        <button class="tab" data-route="stage">🎭 المسرح</button>
+        <button class="tab" data-route="xr">🕶️ XR</button>
+        <button class="tab" data-route="coach">🤖 المدرب</button>
+        <button class="tab" data-route="jury">🧑‍⚖️ التحكيم</button>
+        <button class="tab" data-route="reports">📄 التقارير</button>
+        <button class="tab glow" data-route="settings">⚙️ الإعدادات</button>
+      </nav>
+
+      <div class="actions">
+        <div class="statusPack">
+          <span class="dot" id="dot"></span>
+          <span class="statusTxt" id="status">جاهز</span>
+        </div>
+        <button class="btn ghost" id="themeBtn" title="Theme">🌓</button>
+        <button class="btn primary" id="startAll">ابدأ</button>
+        <button class="btn danger" id="stopAll" disabled>إيقاف</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap main">
+
+    <!-- VIEW: HOME -->
+    <section class="view on" data-view="home">
+      <section class="panel hero">
+        <div class="heroGrid">
+          <div class="heroText">
+            <div class="kicker">واجهة زجاجية • نيون أنيق • تنقل فعلي • كل زر له تأثير</div>
+            <h1 class="h1">
+              أقوى منصة تدريب
+              <span class="grad">XR / AR / VR</span>
+              للتقديم والإلقاء
+            </h1>
+            <p class="p">
+              هذا نموذج Static “واو” جاهز للـ GitHub Pages: تنقل بين الصفحات، مسرح تدريب،
+              HUD، جمهور تفاعلي، تلقين، مدرب، تحكيم، وتقارير محفوظة محليًا.
+            </p>
+
+            <div class="heroBtns">
+              <button class="btn primary" id="goStage">⚡ ادخل المسرح</button>
+              <button class="btn ghost" id="goXR">🕶️ وضع XR</button>
+              <button class="btn ghost" id="makeDemo">✨ Demo WOW</button>
+            </div>
+
+            <div class="kpiRow">
+              <div class="kpi">
+                <div class="k">جلسات</div>
+                <div class="v" id="kSessions">0</div>
+                <div class="s">محليًا</div>
+              </div>
+              <div class="kpi">
+                <div class="k">أفضل درجة</div>
+                <div class="v" id="kBest">—</div>
+                <div class="s">Best</div>
+              </div>
+              <div class="kpi">
+                <div class="k">جاهزية</div>
+                <div class="v" id="kReady">Ready</div>
+                <div class="s">Demo</div>
+              </div>
+            </div>
+
+            <div class="hint">
+              تلميح: إذا صار عندك “Directory listing” فأنت حفظت الملف كـ Folder/RTF — لازم يكون <b>index.html</b> ملف.
+            </div>
+          </div>
+
+          <div class="heroSide">
+            <div class="panel mini">
+              <div class="panelHead">
+                <b>HUD Live</b>
+                <span class="pill soft">LIVE</span>
+              </div>
+
+              <div class="miniGrid">
+                <div class="miniStat">
+                  <div class="t">WPM</div>
+                  <div class="v" id="wpmV">—</div>
+                  <div class="bar"><i id="wpmBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Clarity</div>
+                  <div class="v" id="clV">—</div>
+                  <div class="bar"><i id="clBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Energy</div>
+                  <div class="v" id="enV">—</div>
+                  <div class="bar"><i id="enBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Audience</div>
+                  <div class="v" id="auV">—</div>
+                  <div class="bar"><i id="auBar"></i></div>
+                </div>
+              </div>
+
+              <div class="coachLine" id="coachLine">
+                اضغط “ابدأ” وشوف كيف المؤشرات تتحرك… وبعدين “Demo WOW” 😄
+              </div>
+
+              <div class="row">
+                <button class="btn ghost" id="saveNow">💾 حفظ جلسة</button>
+                <button class="btn ghost" id="exportHTML">📄 تصدير HTML</button>
+                <button class="btn danger" id="wipe">🧹 مسح</button>
+              </div>
+            </div>
+
+            <div class="panel mini" style="margin-top:12px">
+              <div class="panelHead"><b>آخر قرار</b><span class="pill">AUTO</span></div>
+              <div class="last">
+                <div class="lr"><span>الدرجة</span><b id="lastScore">—</b></div>
+                <div class="lr"><span>القرار</span><b id="lastDecision">—</b></div>
+                <div class="lr"><span>الملخص</span><b id="lastSummary">—</b></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="panel pad">
+        <div class="panelHead">
+          <b>سيناريوهات جاهزة</b>
+          <span class="muted">اضغط سيناريو — يوديك للمسرح</span>
+        </div>
+
+        <div class="scGrid">
+          <button class="sc" data-sc="مقابلة" data-env="conference">
+            <div class="ico">🎙️</div><div class="t">مقابلة</div><div class="s">أسئلة سريعة + ثبات</div>
+            <div class="tag">AR</div>
+          </button>
+          <button class="sc" data-sc="استوديو الأخبار" data-env="studio">
+            <div class="ico">📰</div><div class="t">أخبار</div><div class="s">نبرة + إيقاع</div>
+            <div class="tag">XR</div>
+          </button>
+          <button class="sc" data-sc="قاعة مؤتمر" data-env="conference">
+            <div class="ico">🏛️</div><div class="t">مؤتمر</div><div class="s">إقناع + قرار</div>
+            <div class="tag">PRO</div>
+          </button>
+          <button class="sc" data-sc="بودكاست" data-env="podcast">
+            <div class="ico">🎧</div><div class="t">بودكاست</div><div class="s">قصة + دفء</div>
+            <div class="tag">WOW</div>
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: STAGE -->
+    <section class="view" data-view="stage">
+      <section class="panel pad">
+        <div class="panelHead">
+          <b>المسرح 🎭</b>
+          <span class="muted">HUD + جمهور + تلقين + FX</span>
+        </div>
+
+        <div class="stageWrap">
+          <div class="stageScreen">
+            <div class="hudOverlay" id="hudOverlay">
+              <div class="hudTop">
+                <span class="pill" id="pillMode">MODE: READY</span>
+                <span class="pill soft" id="pillEnv">ENV: —</span>
+                <span class="pill soft" id="pillTime">00:00</span>
+              </div>
+
+              <div class="teleBox" id="teleBox" aria-hidden="true">
+                <div class="teleTitle">التلقين</div>
+                <div class="teleText" id="teleText">الصق النص هنا… ثم ابدأ.</div>
+              </div>
+
+              <div class="captions" id="captions" aria-hidden="true">
+                <span class="cap">CC</span>
+                <span class="capText" id="capText">ابدأ الجلسة… تظهر تعليقات ذكية (Mock)</span>
+              </div>
+            </div>
+
+            <div class="audienceLayer" id="audienceLayer" aria-hidden="true">
+              <div class="audTitle">الجمهور</div>
+              <div class="audGrid" id="audGrid"></div>
+            </div>
+
+            <canvas class="fx" id="fx"></canvas>
+          </div>
+
+          <div class="stageControls">
+            <button class="btn soft" id="tHUD">HUD</button>
+            <button class="btn soft" id="tAUD">Audience</button>
+            <button class="btn soft" id="tTEL">Tele</button>
+            <button class="btn soft" id="tCC">CC</button>
+            <button class="btn primary" id="startSession">▶️ جلسة</button>
+            <button class="btn danger" id="stopSession" disabled>■ إيقاف</button>
+          </div>
+
+          <div class="panel pad" style="margin-top:12px">
+            <div class="panelHead"><b>نص التلقين</b><span class="muted">نص + سرعة</span></div>
+            <textarea id="teleArea" class="ta" placeholder="اكتب/الصق النص…"></textarea>
+            <div class="row">
+              <button class="btn soft" id="applyTele">تطبيق</button>
+              <button class="btn ghost" id="demoTele">نص جاهز</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: XR -->
+    <section class="view" data-view="xr">
+      <section class="panel pad">
+        <div class="panelHead"><b>XR</b><span class="muted">تحكم + مؤثرات</span></div>
+
+        <div class="grid2">
+          <div class="cardX">
+            <div class="t">XR Mode</div>
+            <div class="s">تبديل الوضع + تأثيرات</div>
+            <button class="btn primary" id="xrDemo">✨ XR Demo</button>
+          </div>
+          <div class="cardX">
+            <div class="t">Export</div>
+            <div class="s">تقرير HTML سريع</div>
+            <button class="btn ghost" id="xrExport">📄 Export</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: COACH -->
+    <section class="view" data-view="coach">
+      <section class="panel pad">
+        <div class="panelHead"><b>المدرب</b><span class="muted">Chat (Mock) + Tips</span></div>
+        <div class="chatWrap">
+          <div class="chat" id="chat"></div>
+          <div class="row">
+            <input class="input" id="chatInput" placeholder="اكتب سؤال… مثال: كيف أبدأ افتتاحية قوية؟" />
+            <button class="btn primary" id="chatSend">إرسال</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: JURY -->
+    <section class="view" data-view="jury">
+      <section class="panel pad">
+        <div class="panelHead"><b>التحكيم</b><span class="muted">درجة + قرار</span></div>
+
+        <div class="juryGrid">
+          <div class="cardX">
+            <div class="t">الدرجات</div>
+            <div class="sl">
+              <label>وضوح</label><input id="jCl" type="range" min="0" max="100" value="74"/>
+              <label>ثقة</label><input id="jCo" type="range" min="0" max="100" value="68"/>
+              <label>تفاعل</label><input id="jAu" type="range" min="0" max="100" value="72"/>
+              <label>لغة</label><input id="jLa" type="range" min="0" max="100" value="78"/>
+            </div>
+            <button class="btn primary" id="juryCalc">احسب</button>
+          </div>
+
+          <div class="cardX">
+            <div class="t">النتيجة</div>
+            <div class="big" id="juryScore">—</div>
+            <div class="dec" id="juryDecision">—</div>
+            <button class="btn ghost" id="juryMake">📄 تقرير</button>
+          </div>
+
+          <div class="cardX">
+            <div class="t">التقرير</div>
+            <pre class="pre" id="juryReport">اضغط “تقرير”</pre>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: REPORTS -->
+    <section class="view" data-view="reports">
+      <section class="panel pad">
+        <div class="panelHead"><b>التقارير</b><span class="muted">Sessions محليًا</span></div>
+        <div class="sessions" id="sessions"></div>
+        <div class="row">
+          <button class="btn danger" id="clearAll">مسح الكل</button>
+          <button class="btn ghost" id="exportAll">📄 تصدير HTML</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: SETTINGS -->
+    <section class="view" data-view="settings">
+      <section class="panel pad">
+        <div class="panelHead"><b>الإعدادات</b><span class="muted">تحكم ناعم</span></div>
+        <div class="settings">
+          <div class="set">
+            <div class="t">قوة الجمهور</div>
+            <input id="audPower" type="range" min="0" max="100" value="60"/>
+            <div class="s">كلما زادت… الجمهور يصير “لجنة تحكيم متنقلة”</div>
+          </div>
+          <div class="set">
+            <div class="t">سرعة التلقين</div>
+            <input id="teleSpeed" type="range" min="10" max="140" value="70"/>
+            <div class="s">سرعة القراءة في التلقين</div>
+          </div>
+          <div class="set">
+            <div class="t">FX</div>
+            <button class="btn soft" id="fxToggle">تشغيل/إيقاف FX</button>
+            <div class="s">مؤثرات نيون (Canvas)</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+  </main>
+
+  <!-- IMPORTANT: سكربت واحد فقط -->
+  <script type="module" src="./assets/app.js"></script>
+</body>
+</html>
