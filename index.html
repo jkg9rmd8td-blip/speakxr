@@ -4,202 +4,450 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#070815"/>
-  <title>SpeakXR — XR Platform</title>
-
+  <title>SpeakXR X-Stage PRO</title>
   <link rel="manifest" href="./assets/manifest.webmanifest"/>
   <link rel="stylesheet" href="./style.css"/>
-
-  <meta name="description" content="SpeakXR منصة تدريب خطاب وإعلام بالواقع الممتد + تحليل ذكي + تلقين + جمهور افتراضي + تقرير"/>
+  <meta name="description" content="SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive Dashboard + Jury Board"/>
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="wrap topbar__in">
-      <div class="brand">
-        <div class="mark">S</div>
-        <div>
-          <div class="name">SpeakXR <span class="pill">XR Platform</span></div>
-          <div class="tag">الخطابة + الواقع الممتد + التحليل الذكي — صفحة واحدة قوية</div>
+  <!-- TOP BAR -->
+  <header class="topbarPro">
+    <div class="wrap topbarIn">
+
+      <div class="brandPro">
+        <div class="logoPro">SX</div>
+        <div class="brandTxt">
+          <div class="brandTitle">
+            <span>SpeakXR</span>
+            <span class="brandSub">X-Stage</span>
+            <span class="chipP">PRO</span>
+          </div>
+          <div class="brandMeta">WebXR • AR • VR • Voice Engine • Audience Engine</div>
         </div>
       </div>
 
-      <nav class="nav">
-        <a href="#home" class="navlink">الرئيسية</a>
-        <a href="#features" class="navlink">الميزات</a>
-        <a href="#scenarios" class="navlink">السيناريوهات</a>
-        <a href="#analyze" class="navlink">التحليل</a>
-        <a href="#xr" class="navlink">XR Stage</a>
+      <nav class="tabs" id="tabs">
+        <button class="tab on" data-route="demo">⚡ Demo</button>
+        <button class="tab" data-route="webxr">🕶️ WebXR</button>
+        <button class="tab" data-route="executive">🏛️ Executive</button>
+        <button class="tab" data-route="settings">⚙️ الإعدادات</button>
+        <button class="tab" data-route="jury">🧑‍⚖️ لوحة التحكم</button>
+        <button class="tab" data-route="analysis">📊 تحليل الأداء</button>
+        <button class="tab" data-route="data">🗂️ بيانات التدريب</button>
+        <button class="tab glow" data-route="stage">🎭 المسرح</button>
       </nav>
 
-      <div class="cta">
-        <button class="btn ghost" id="cmdBtn">⌘K أوامر</button>
-        <button class="btn ghost" id="presentBtn">🎬 Presenter</button>
+      <div class="actions">
+        <div class="statusPack">
+          <span class="dot" id="dot"></span>
+          <span class="statusTxt" id="status">جاهز</span>
+        </div>
+        <button class="btn ghost" id="cmdBtn">⌘K</button>
+        <button class="btn ghost" id="presentBtn">Presenter</button>
         <button class="btn ok" id="startAll">ابدأ</button>
         <button class="btn danger" id="stopAll" disabled>إيقاف</button>
       </div>
+
     </div>
   </header>
 
-  <main class="wrap main">
+  <!-- MAIN -->
+  <main class="wrap proMain">
 
-    <!-- HERO -->
-    <section id="home" class="hero panel">
-      <div class="heroIn">
-        <div class="heroText">
-          <div class="heroKicker">SpeakXR</div>
-          <h1 class="heroTitle">أتقن الإلقاء بالذكاء الاصطناعي والواقع الممتد</h1>
-          <p class="heroSub">
-            تدريب بصري بالكاميرا + HUD حي، تلقين ذكي، جمهور تفاعلي، ومدرّب لحظي…
-            مع تقرير نهائي قابل للتصدير.
-          </p>
+    <!-- VIEW: DEMO -->
+    <section class="view on" data-view="demo">
+      <div class="heroPro panel">
+        <div class="heroGrid">
+          <div class="heroText">
+            <div class="kicker">تحكم لحظي • جمهور تفاعلي • واقع ممتد من المتصفح</div>
+            <h1 class="h1">
+              أتقن الخطابة العامة بالذكاء الاصطناعي
+              <span class="grad">والواقع الممتد</span>
+            </h1>
+            <p class="p">
+              هذا ليس “موقع”… هذا <b>مسرح تدريبي</b>: كاميرا + AR HUD + جمهور افتراضي يتفاعل،
+              وتحكيم AI يطلع قرارًا قابلًا للتفسير + تقرير جاهز للعرض.
+            </p>
 
-          <div class="heroBtns">
-            <a class="btn primary" href="#xr">ابدأ XR Stage</a>
-            <a class="btn ghost" href="#scenarios">اختر سيناريو</a>
-            <a class="btn ghost" href="#analyze">حلّل الآن</a>
-          </div>
-
-          <div class="heroStats">
-            <div class="stat"><div class="t">XR HUD Live</div><div class="v">WPM • Energy • Clarity</div></div>
-            <div class="stat"><div class="t">Coach</div><div class="v">ملاحظات لحظية</div></div>
-            <div class="stat"><div class="t">Report</div><div class="v">HTML • JSON</div></div>
-          </div>
-        </div>
-
-        <div class="heroVisual">
-          <div class="glassPreview">
-            <div class="pvTop">
-              <b>XR Preview</b>
-              <span class="miniPill">Live</span>
+            <div class="heroBtns">
+              <button class="btn primary" id="goStageBtn">⚡ Enter Stage</button>
+              <button class="btn ghost" id="pickScenarioBtn">🎬 اختر سيناريو</button>
+              <button class="btn ghost" id="downloadReportBtn">📄 تحميل تقرير</button>
             </div>
-            <div class="pvBody">
-              <div class="pvCards">
-                <div class="pvCard"><div class="pvt">WPM</div><div class="pvv">140</div></div>
-                <div class="pvCard"><div class="pvt">Energy</div><div class="pvv">78%</div></div>
-                <div class="pvCard"><div class="pvt">Clarity</div><div class="pvv">82%</div></div>
-                <div class="pvCard"><div class="pvt">Audience</div><div class="pvv">🙂 74%</div></div>
+
+            <div class="cardsRow">
+              <div class="kpiCard">
+                <div class="kpiT">جلسات</div>
+                <div class="kpiV" id="kpiSessions">0</div>
+                <div class="kpiS">محفوظة محليًا</div>
               </div>
-              <div class="pvHint">⌘K للأوامر • Right-Click لقائمة XR</div>
+              <div class="kpiCard">
+                <div class="kpiT">أفضل درجة</div>
+                <div class="kpiV" id="kpiBest">—</div>
+                <div class="kpiS">Best Score</div>
+              </div>
+              <div class="kpiCard">
+                <div class="kpiT">جاهزية</div>
+                <div class="kpiV" id="kpiReady">Ready</div>
+                <div class="kpiS">Ready for Hackathon</div>
+              </div>
             </div>
+
+            <div class="hintLine">تلميح: Right-Click / لمس مطوّل = قائمة XR • ⌘K أوامر</div>
+          </div>
+
+          <div class="heroSide">
+            <div class="panel miniPanel">
+              <div class="panelHead">
+                <b>XR HUD Live</b>
+                <span class="miniPill">LIVE</span>
+              </div>
+              <div class="miniGrid">
+                <div class="miniStat">
+                  <div class="t">WPM</div><div class="v" id="wpmV">—</div>
+                  <div class="bar"><i id="wpmBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Energy</div><div class="v" id="enV">—</div>
+                  <div class="bar"><i id="enBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Clarity</div><div class="v" id="clV">—</div>
+                  <div class="bar"><i id="clBar"></i></div>
+                </div>
+                <div class="miniStat">
+                  <div class="t">Audience</div><div class="v" id="auV">—</div>
+                  <div class="bar"><i id="auBar"></i></div>
+                </div>
+              </div>
+              <div class="coachBox" id="coachBox">اضغط “ابدأ”… والمدرب يطلع لك ملاحظات لحظية.</div>
+            </div>
+
+            <div class="panel miniPanel" style="margin-top:12px">
+              <div class="panelHead"><b>آخر تقرير</b><span class="miniPill soft">AUTO</span></div>
+              <div class="miniReport">
+                <div class="mr">
+                  <span>الدرجة</span><b id="rScore">—</b>
+                </div>
+                <div class="mr">
+                  <span>القرار</span><b id="rDecision">—</b>
+                </div>
+                <div class="mr">
+                  <span>ملخص</span><b id="rSummary">—</b>
+                </div>
+                <div class="mr">
+                  <span>عدد الجلسات</span><b id="rCount">0</b>
+                </div>
+
+                <div class="row">
+                  <button class="btn ghost" id="saveNow">💾 حفظ</button>
+                  <button class="btn ghost" id="exportHTML">📄 HTML</button>
+                  <button class="btn ghost" id="exportJSON">🧾 JSON</button>
+                  <button class="btn danger" id="wipe">🧹 مسح</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Scenarios -->
+      <div class="panel pad" id="scenarioPanel">
+        <div class="panelHead">
+          <b>تدرب في أي سيناريو</b>
+          <span class="muted">اختر سيناريو + البيئة ثم ابدأ المسرح</span>
+        </div>
+
+        <div class="scenarioGridPro">
+          <button class="scPro" data-sc="مقابلة" data-env="conference">
+            <div class="ico">🎙️</div><div class="t">مقابلة</div><div class="s">أسئلة مفاجئة • ثقة • إجابات مختصرة</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+
+          <button class="scPro" data-sc="استوديو الأخبار" data-env="studio">
+            <div class="ico">📰</div><div class="t">استوديو الأخبار</div><div class="s">نبرة ثابتة • كلمات أقل • إيقاع مضبوط</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+
+          <button class="scPro" data-sc="قاعة مؤتمر" data-env="conference">
+            <div class="ico">🏛️</div><div class="t">قاعة مؤتمر</div><div class="s">عرض رسمي • ضبط وقت • قرار واضح</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+
+          <button class="scPro" data-sc="تقرير ميداني" data-env="outdoor">
+            <div class="ico">📍</div><div class="t">تقرير ميداني</div><div class="s">صوت أعلى • سرعة مناسبة • ترتيب معلومات</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+
+          <button class="scPro" data-sc="بودكاست" data-env="podcast">
+            <div class="ico">🎧</div><div class="t">بودكاست</div><div class="s">أسلوب قصصي • نبرة دافئة • تأثير أكبر</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+
+          <button class="scPro" data-sc="قاعة تدريب" data-env="studio">
+            <div class="ico">🎓</div><div class="t">قاعة تدريب</div><div class="s">شرح خطوة بخطوة • تفاعل أسئلة/أجوبة</div>
+            <div class="ctaMini">AR Preview</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: WEBXR -->
+    <section class="view" data-view="webxr">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>WebXR</b>
+          <span class="muted">تشغيل AR/VR إذا كان مدعوم… وإلا بيشتغل XR بالكاميرا/HUD طبيعي</span>
+        </div>
+
+        <div class="grid2">
+          <div class="cardPro">
+            <div class="t">AR Support</div>
+            <div class="v" id="xrSupport">—</div>
+            <div class="s">فحص دعم immersive-ar</div>
+            <button class="btn primary" id="checkXRBtn">فحص</button>
+          </div>
+
+          <div class="cardPro">
+            <div class="t">Start AR</div>
+            <div class="v">WebXR AR</div>
+            <div class="s">إذا غير مدعوم، يرجع للوضع العادي</div>
+            <button class="btn ghost" id="startAR">🕶️ Start</button>
+          </div>
+        </div>
+
+        <div class="panel pad" style="margin-top:12px">
+          <b>ملاحظة واقعية</b>
+          <div class="muted" style="margin-top:6px;line-height:1.9">
+            على iOS غالبًا WebXR محدود. الأفضل للـ AR الحقيقي: Android Chrome.
+            لكن منصة X-Stage تظل XR قوية لأنها تعتمد على <b>كاميرا + HUD + Voice Engine</b> وتشتغل على أي جهاز.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- FEATURES -->
-    <section id="features" class="section">
-      <div class="secHead">
-        <div class="secK">الميزات الأساسية</div>
-        <h2 class="secT">كل شيء في منصة واحدة</h2>
-        <p class="secS">أدوات XR + تحليل ذكي + مدرب + تقارير… بدون تعقيد.</p>
-      </div>
+    <!-- VIEW: EXECUTIVE -->
+    <section class="view" data-view="executive">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>Executive Dashboard</b>
+          <span class="muted">ملخص + مؤشرات + جاهزية عرض رسمي</span>
+        </div>
 
-      <div class="cards3">
-        <div class="fcard"><div class="fico">🎥</div><div class="ft">XR Stage</div><div class="fs">كاميرا + HUD فوق المشهد.</div></div>
-        <div class="fcard"><div class="fico">📈</div><div class="ft">تحليل حي</div><div class="fs">WPM/Energy/Clarity + Gate للصمت.</div></div>
-        <div class="fcard"><div class="fico">📝</div><div class="ft">Teleprompter</div><div class="fs">نص فوق المشهد بسرعة وحجم.</div></div>
-        <div class="fcard"><div class="fico">👥</div><div class="ft">Audience</div><div class="fs">تفاعل يتغير حسب الأداء.</div></div>
-        <div class="fcard"><div class="fico">🤖</div><div class="ft">Coach</div><div class="fs">ملاحظات مرتبطة بالمؤشرات.</div></div>
-        <div class="fcard"><div class="fico">📊</div><div class="ft">Report</div><div class="fs">Score + Export + Sessions.</div></div>
-      </div>
-    </section>
+        <div class="execGrid">
+          <div class="execCard">
+            <div class="t">جلسات</div>
+            <div class="v" id="exSessions">0</div>
+            <div class="s">Sessions Stored</div>
+          </div>
+          <div class="execCard">
+            <div class="t">أفضل درجة</div>
+            <div class="v" id="exBest">—</div>
+            <div class="s">Best Score</div>
+          </div>
+          <div class="execCard">
+            <div class="t">آخر سيناريو</div>
+            <div class="v" id="exLast">—</div>
+            <div class="s">Last Scenario</div>
+          </div>
+          <div class="execCard">
+            <div class="t">جاهزية</div>
+            <div class="v" id="exReady">Ready</div>
+            <div class="s">Hackathon / Demo</div>
+          </div>
+        </div>
 
-    <!-- SCENARIOS -->
-    <section id="scenarios" class="section">
-      <div class="secHead">
-        <div class="secK">بيئات التدريب</div>
-        <h2 class="secT">اختر سيناريو وابدأ فورًا</h2>
-        <p class="secS">السيناريو يضبط الهدف والتغذية الراجعة تلقائيًا.</p>
-      </div>
-
-      <div class="scenarioGrid">
-        <button class="scCard" data-sc="مؤتمر" data-env="conference">
-          <div class="scIco">🎤</div><div class="scT">مؤتمر صحفي</div>
-          <div class="scS">أسئلة مفاجئة • ثقة • سرعة رد</div><div class="scA">تجربة XR</div>
-        </button>
-
-        <button class="scCard" data-sc="مذيع" data-env="studio">
-          <div class="scIco">📰</div><div class="scT">استوديو أخبار</div>
-          <div class="scS">إلقاء مضبوط • نبرة • ثبات</div><div class="scA">تجربة XR</div>
-        </button>
-
-        <button class="scCard" data-sc="خطابة" data-env="outdoor">
-          <div class="scIco">🗣️</div><div class="scT">خطابة عامة</div>
-          <div class="scS">حضور • تأثير • إقناع</div><div class="scA">تجربة XR</div>
-        </button>
-
-        <button class="scCard" data-sc="مقابلة" data-env="podcast">
-          <div class="scIco">🎧</div><div class="scT">بودكاست</div>
-          <div class="scS">هدوء • قصة • وضوح</div><div class="scA">تجربة XR</div>
-        </button>
+        <div class="panel pad" style="margin-top:12px">
+          <div class="panelHead">
+            <b>ملخص تنفيذي</b>
+            <span class="muted">يُستخدم للنمذجة والعرض</span>
+          </div>
+          <div class="execText" id="execText">—</div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn ghost" id="exportExecutive">📄 تصدير ملخص HTML</button>
+            <button class="btn primary" id="goStage2">🎭 افتح المسرح</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ANALYZE -->
-    <section id="analyze" class="section">
-      <div class="secHead">
-        <div class="secK">تحليل الأداء</div>
-        <h2 class="secT">سجّل وحلّل ثم احفظ</h2>
-        <p class="secS">ابدأ جلسة من XR Stage… وراح تشوف المؤشرات تتغير لحظيًا.</p>
-      </div>
+    <!-- VIEW: SETTINGS -->
+    <section class="view" data-view="settings">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>الإعدادات</b>
+          <span class="muted">تحكم بحساسية الجمهور + نمط الإرشاد + شدة الضغط</span>
+        </div>
 
-      <div class="panel analyzePanel">
-        <div class="anIn">
-          <div class="anBox">
-            <div class="anTitle">🎙️ تحليل حي</div>
-            <div class="anSub">المؤشرات تحت تتحدث معك قبل ما تتحدث أنت 😄</div>
-
-            <div class="anRow">
-              <div class="chip miniChip"><div class="t">WPM</div><div class="v" id="wpmV">—</div><div class="bar"><i id="wpmBar"></i></div></div>
-              <div class="chip miniChip"><div class="t">Energy</div><div class="v" id="enV">—</div><div class="bar"><i id="enBar"></i></div></div>
-              <div class="chip miniChip"><div class="t">Clarity</div><div class="v" id="clV">—</div><div class="bar"><i id="clBar"></i></div></div>
-              <div class="chip miniChip"><div class="t">Audience</div><div class="v" id="auV">—</div><div class="bar"><i id="auBar"></i></div></div>
+        <div class="settingsGrid">
+          <div class="setCard">
+            <div class="t">نمط الإرشاد</div>
+            <div class="seg2" id="coachModeSeg">
+              <button class="on" data-mode="soft">مشجّع</button>
+              <button data-mode="direct">مباشر</button>
+              <button data-mode="jury">لجنة تحكيم</button>
             </div>
-
-            <div class="coachBox" id="coachBox">
-              ابدأ الجلسة… والمدرب يطلع ملاحظات مرتبطة بالمؤشرات.
-              <div class="small">⌘K ثم coach</div>
-            </div>
+            <div class="s">المشجّع لطيف… لجنة التحكيم ما تبتسم 😄</div>
           </div>
 
-          <div class="reportBoxWrap">
-            <div class="anTitle">📊 تقرير الجلسة</div>
-            <div class="reportGrid" id="reportGrid">
-              <div class="card"><div class="t">آخر نتيجة</div><div class="v" id="rScore">—</div></div>
-              <div class="card"><div class="t">قرار</div><div class="v" id="rDecision">—</div></div>
-              <div class="card"><div class="t">ملخص</div><div class="v" id="rSummary">—</div></div>
-              <div class="card"><div class="t">الجلسات</div><div class="v" id="rCount">0</div></div>
-            </div>
+          <div class="setCard">
+            <div class="t">شدة الضغط</div>
+            <input id="pressure" type="range" min="0" max="100" value="45"/>
+            <div class="s">يزيد الأسئلة المفاجئة وتغيّر مزاج الجمهور</div>
+          </div>
 
+          <div class="setCard">
+            <div class="t">حساسية الجمهور</div>
+            <input id="audienceSense" type="range" min="0" max="100" value="55"/>
+            <div class="s">كلما زادت… الجمهور “يدقق” أكثر</div>
+          </div>
+
+          <div class="setCard">
+            <div class="t">تفعيل التلقين تلقائيًا</div>
+            <label class="toggle">
+              <input id="autoTele" type="checkbox"/>
+              <span></span>
+            </label>
+            <div class="s">يفتح التلقين عند بدء الجلسة</div>
+          </div>
+        </div>
+
+        <div class="panel pad" style="margin-top:12px">
+          <b>Telemetry</b>
+          <div class="muted" style="margin-top:6px;line-height:1.9">
+            يتم حفظ الجلسات محليًا على جهازك فقط (LocalStorage) للتجربة والنمذجة.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: JURY -->
+    <section class="view" data-view="jury">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>لوحة التحكيم (AI Jury)</b>
+          <span class="muted">٤ لجان + درجة نهائية + قرار</span>
+        </div>
+
+        <div class="juryGrid">
+          <div class="juryCard">
+            <div class="jt">لجنة الثقة والحضور</div>
+            <ul class="jlist">
+              <li>ثبات</li><li>إدارة توتر</li><li>تواصل بصري</li>
+            </ul>
+            <textarea class="jnotes" id="jConfidence" placeholder="ملاحظات اللجنة…"></textarea>
+          </div>
+
+          <div class="juryCard">
+            <div class="jt">لجنة الصوت</div>
+            <ul class="jlist">
+              <li>وضوح</li><li>نبرة</li><li>إيقاع</li>
+            </ul>
+            <textarea class="jnotes" id="jVoice" placeholder="ملاحظات اللجنة…"></textarea>
+          </div>
+
+          <div class="juryCard big">
+            <div class="jt">الدرجة النهائية</div>
+            <div class="finalScore">
+              <div class="fsV" id="finalScore">—</div>
+              <div class="fsBar"><i id="finalBar"></i></div>
+            </div>
+            <div class="decision" id="finalDecision">—</div>
             <div class="row" style="margin-top:10px">
-              <button class="btn ghost" id="saveNow">💾 حفظ</button>
-              <button class="btn ghost" id="exportHTML">📄 HTML</button>
-              <button class="btn ghost" id="exportJSON">🧾 JSON</button>
-              <button class="btn danger" id="wipe">🧹 مسح</button>
+              <button class="btn primary" id="calcJury">احسب</button>
+              <button class="btn ghost" id="juryExport">📄 تصدير</button>
             </div>
+          </div>
+
+          <div class="juryCard">
+            <div class="jt">لجنة الجمهور</div>
+            <ul class="jlist">
+              <li>تفاعل</li><li>ملل/تشتيت</li><li>تصفيق</li>
+            </ul>
+            <textarea class="jnotes" id="jAudience" placeholder="ملاحظات اللجنة…"></textarea>
+          </div>
+
+          <div class="juryCard">
+            <div class="jt">لجنة الإقناع والبناء</div>
+            <ul class="jlist">
+              <li>بداية قوية</li><li>بناء منطقي</li><li>خاتمة</li>
+            </ul>
+            <textarea class="jnotes" id="jBuild" placeholder="ملاحظات اللجنة…"></textarea>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- XR STAGE -->
-    <section id="xr" class="section">
-      <div class="secHead">
-        <div class="secK">XR Stage</div>
-        <h2 class="secT">التجربة الحية</h2>
-        <p class="secS">كاميرا + HUD + جمهور + تلقين + أوامر… كلها تتفاعل مع أدائك.</p>
-      </div>
+    <!-- VIEW: ANALYSIS -->
+    <section class="view" data-view="analysis">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>تحليل الأداء</b>
+          <span class="muted">Timeline + ملخص + توصيات قابلة للتنفيذ</span>
+        </div>
 
-      <section class="panel stage">
-        <div class="h">
-          <div>
-            <b>🧿 XR Stage Live</b>
-            <div class="s">HUD حي فوق المشهد + جمهور + Teleprompter Overlay</div>
+        <div class="analysisBox">
+          <div class="aTop">
+            <div class="aCard"><div class="t">WPM</div><div class="v" id="aWpm">—</div><div class="s">المثالي 120-160</div></div>
+            <div class="aCard"><div class="t">Confidence</div><div class="v" id="aConf">—</div><div class="s">ثبات مع وضوح ونبرة</div></div>
+            <div class="aCard"><div class="t">Fillers</div><div class="v" id="aFillers">—</div><div class="s">يعني/اممم…</div></div>
           </div>
-          <div class="statusDot">
-            <span class="dot" id="dot"></span>
-            <span class="s" id="status">جاهز</span>
+
+          <div class="timelineWrap">
+            <canvas id="timeline"></canvas>
+            <div class="legend">
+              <span><i class="lg c1"></i>سرعة</span>
+              <span><i class="lg c2"></i>طاقة</span>
+              <span><i class="lg c3"></i>ثقة</span>
+            </div>
           </div>
+
+          <div class="panel pad" style="margin-top:12px">
+            <b>توصيات</b>
+            <div class="muted" id="tips" style="margin-top:6px;line-height:1.9">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: DATA -->
+    <section class="view" data-view="data">
+      <div class="panel pad">
+        <div class="panelHead">
+          <b>بيانات التدريب</b>
+          <span class="muted">عرض الجلسات + أعلى الدرجات</span>
+        </div>
+
+        <div class="tableWrap">
+          <table class="tbl" id="sessionsTbl">
+            <thead>
+              <tr>
+                <th>الوقت</th>
+                <th>السيناريو</th>
+                <th>البيئة</th>
+                <th>الدرجة</th>
+                <th>قرار</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost" id="refreshData">تحديث</button>
+          <button class="btn primary" id="goStage3">افتح المسرح</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: STAGE -->
+    <section class="view" data-view="stage">
+      <section class="panel stagePro">
+        <div class="panelHead">
+          <b>XR Stage 🎭</b>
+          <span class="muted">كاميرا + HUD + جمهور + تلقين + تحكم</span>
         </div>
 
         <div class="stageWrap" id="stageWrap">
@@ -207,92 +455,43 @@
           <canvas id="hud"></canvas>
           <canvas id="audience"></canvas>
 
-          <div class="hudTop">
-            <div class="chipRow">
-              <div class="chip"><div class="t">السيناريو</div><div class="v" id="scenarioV">مقابلة</div></div>
-              <div class="chip"><div class="t">الوقت</div><div class="v" id="timeV">00:00</div><div class="bar"><i id="timeBar"></i></div></div>
-              <div class="chip"><div class="t">Gate</div><div class="v" id="gateV">—</div><div class="bar"><i id="gateBar"></i></div></div>
-            </div>
-          </div>
-
+          <!-- Teleprompter overlay -->
           <div class="teleOverlay" id="teleOverlay">
             <div id="teleOverlayText"></div>
             <div class="hint">⌘K ثم tele • Right-Click = XR Menu</div>
           </div>
 
+          <!-- Controls -->
           <div class="controls">
             <button class="btn ghost" id="toggleMirror">🪞 مرآة</button>
             <button class="btn ghost" id="toggleAudience">👥 جمهور</button>
             <button class="btn ghost" id="toggleTele">📝 تلقين</button>
             <button class="btn ghost" id="toggleHUD">🧿 HUD</button>
-            <button class="btn ghost" id="startAR">🕶️ WebXR AR</button>
             <button class="btn primary" id="startSession">▶️ جلسة</button>
             <button class="btn danger" id="stopSession" disabled>■ إيقاف</button>
           </div>
         </div>
+
+        <!-- Teleprompter panel -->
+        <div class="panel pad" style="margin-top:12px">
+          <div class="panelHead"><b>التلقين</b><span class="muted">نص + سرعة + حجم</span></div>
+          <textarea id="teleText" placeholder="اكتب نصك هنا…"></textarea>
+          <div class="miniControls">
+            <label>سرعة</label><input id="teleSpeed" type="range" min="10" max="140" value="64"/>
+            <label>حجم</label><input id="teleSize" type="range" min="16" max="40" value="22"/>
+            <button class="btn ghost" id="teleRun">▶️ تشغيل</button>
+            <button class="btn ghost" id="telePause">⏸️ إيقاف</button>
+          </div>
+        </div>
       </section>
-
-      <div class="panel sidePanel" style="margin-top:16px">
-        <div class="h">
-          <div>
-            <b>🎛️ إعدادات XR</b>
-            <div class="s">سيناريو + بيئة + Teleprompter</div>
-          </div>
-          <div class="s">Right-Click = XR Menu</div>
-        </div>
-
-        <div class="side">
-          <div class="row">
-            <div>
-              <div class="sub" style="margin-bottom:6px">السيناريو</div>
-              <div class="seg" id="scenarioSeg">
-                <button class="on" data-sc="مقابلة">🎙️ مقابلة</button>
-                <button data-sc="مذيع">🎥 مذيع</button>
-                <button data-sc="خطابة">🗣️ خطابة</button>
-                <button data-sc="مؤتمر">👥 مؤتمر</button>
-              </div>
-            </div>
-
-            <div>
-              <div class="sub" style="margin-bottom:6px">البيئة</div>
-              <div class="seg" id="envSeg">
-                <button class="on" data-env="studio">🎛️ Studio</button>
-                <button data-env="conference">🏛️ Conf</button>
-                <button data-env="podcast">🎧 Pod</button>
-                <button data-env="outdoor">🌙 Out</button>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <div class="sub" style="margin-bottom:6px">نص التدريب / التلقين</div>
-            <textarea id="teleText" placeholder="اكتب نصك هنا…"></textarea>
-            <div class="miniControls">
-              <label>سرعة</label><input id="teleSpeed" type="range" min="10" max="140" value="64"/>
-              <label>حجم</label><input id="teleSize" type="range" min="16" max="34" value="22"/>
-              <button class="btn ghost" id="teleRun">▶️ تشغيل</button>
-              <button class="btn ghost" id="telePause">⏸️ إيقاف</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
 
   </main>
 
-  <!-- Dock -->
-  <div class="dock" id="dock">
-    <button class="on" data-action="stage"><span>🎬</span><small>Stage</small></button>
-    <button data-action="hud"><span>🧿</span><small>HUD</small></button>
-    <button data-action="tele"><span>📝</span><small>Tele</small></button>
-    <button data-action="coach"><span>🧠</span><small>Coach</small></button>
-    <button data-action="report"><span>📊</span><small>Report</small></button>
-  </div>
-
   <!-- Command Palette -->
   <div class="cpBack" id="cpBack" aria-hidden="true">
     <div class="cp" role="dialog" aria-label="Command Palette">
-      <input id="cpInput" placeholder="اكتب أمر… (start, stop, tele, coach, save, export)"/>
+      <input id="cpInput" placeholder="اكتب أمر… (stage, start, stop, tele, coach, save, export, jury, analysis)"/>
       <div class="cpList" id="cpList"></div>
     </div>
   </div>
