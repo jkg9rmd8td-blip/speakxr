@@ -1,734 +1,716 @@
-/* =========================
-   SpeakXR — WOW X-Stage PRO
-   FILE: /assets/app.js
-   تفعيل كامل: Tabs/Views + Stage + HUD + Audience + Teleprompter + FX + Coach + Jury + Reports
-   ========================= */
+/* ===============================
+   SpeakXR X-Stage PRO (Static)
+   assets/app.js
+   =============================== */
 
-(() => {
-  "use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-  /* ---------- Helpers ---------- */
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const rnd = (a, b) => a + Math.random() * (b - a);
-  const nowISO = () => new Date().toISOString();
+/* ---------- Router (Tabs) ---------- */
+function go(page) {
+  const id = `page-${page}`;
+  $$(".page").forEach((p) => p.classList.remove("active"));
+  const target = document.getElementById(id);
+  if (target) target.classList.add("active");
 
-  const STORAGE_KEY = "speakxr_xstage_sessions_v1";
+  // highlight nav
+  $$(".navBtn").forEach((b) => {
+    if (b.dataset.go) b.classList.toggle("active", b.dataset.go === page);
+  });
 
-  /* ---------- Safe DOM ---------- */
-  const el = {
-    // top
-    tabs: $("#tabs"),
-    status: $("#status"),
-    dot: $("#dot"),
+  // keep hash
+  history.replaceState({}, "", `#${page}`);
+}
 
-    // nav (tabs)
-    tabBtns: $$(".tab"),
+function initRouter() {
+  // buttons with data-go
+  $$(".navBtn").forEach((btn) => {
+    if (!btn.dataset.go) return;
+    btn.addEventListener("click", () => go(btn.dataset.go));
+  });
 
-    // views
-    views: $$(".view"),
+  const initial = (location.hash || "#home").slice(1);
+  go(initial);
 
-    // quick hero
-    kpiSessions: $("#kpiSessions"),
-    kpiBest: $("#kpiBest"),
-    kpiReady: $("#kpiReady"),
+  window.addEventListener("hashchange", () => {
+    const p = (location.hash || "#home").slice(1);
+    go(p);
+  });
+}
 
-    // live mini stats
-    wpmV: $("#wpmV"),
-    enV: $("#enV"),
-    clV: $("#clV"),
-    auV: $("#auV"),
-    wpmBar: $("#wpmBar"),
-    enBar: $("#enBar"),
-    clBar: $("#clBar"),
-    auBar: $("#auBar"),
-    coachBox: $("#coachBox"),
+/* ---------- Elements ---------- */
+const els = {
+  // session
+  startBtn: $("#startBtn"),
+  stopBtn: $("#stopBtn"),
+  themeBtn: $("#themeBtn"),
 
-    // last report mini
-    rScore: $("#rScore"),
-    rDecision: $("#rDecision"),
-    rSummary: $("#rSummary"),
-    rCount: $("#rCount"),
+  // toggles
+  toggleHUD: $("#toggleHUD"),
+  toggleAudience: $("#toggleAudience"),
+  toggleTele: $("#toggleTele"),
+  toggleVR: $("#toggleVR"),
 
-    // actions
-    startAll: $("#startAll"),
-    stopAll: $("#stopAll"),
-    cmdBtn: $("#cmdBtn"),
-    presentBtn: $("#presentBtn"),
+  // sliders
+  hudSize: $("#hudSize"),
+  audPower: $("#audPower"),
+  teleSpeed: $("#teleSpeed"),
 
-    // buttons (demo)
-    goStageBtn: $("#goStageBtn"),
-    pickScenarioBtn: $("#pickScenarioBtn"),
-    downloadReportBtn: $("#downloadReportBtn"),
-    saveNow: $("#saveNow"),
-    exportHTML: $("#exportHTML"),
-    exportJSON: $("#exportJSON"),
-    wipe: $("#wipe"),
+  // stage
+  pillMode: $("#pillMode"),
+  pillAud: $("#pillAud"),
+  pillHud: $("#pillHud"),
+  pillTime: $("#pillTime"),
 
-    // scenario grid
-    scenarioBtns: $$(".scPro"),
+  hudHint: $("#hudHint"),
+  tele: $("#tele"),
+  teleText: $("#teleText"),
+  lens: $("#lens"),
 
-    // settings
-    pressure: $("#pressure"),
-    audienceSense: $("#audienceSense"),
-    autoTele: $("#autoTele"),
-    fxOn: $("#fxOn"),
-    ccOn: $("#ccOn"),
-    coachModeSeg: $("#coachModeSeg"),
+  audience: $("#audience"),
+  audGrid: $("#audGrid"),
 
-    // executive
-    exSessions: $("#exSessions"),
-    exBest: $("#exBest"),
-    exLast: $("#exLast"),
-    exReady: $("#exReady"),
-    execText: $("#execText"),
-    exportExecutive: $("#exportExecutive"),
-    goStage2: $("#goStage2"),
-    goStage3: $("#goStage3"),
+  vr: $("#vr"),
 
-    // webxr
-    xrSupport: $("#xrSupport"),
-    checkXRBtn: $("#checkXRBtn"),
-    startAR: $("#startAR"),
+  // script
+  scriptInput: $("#scriptInput"),
+  applyScript: $("#applyScript"),
+  wowBtn: $("#wowBtn"),
 
-    // jury
-    finalScore: $("#finalScore"),
-    finalBar: $("#finalBar"),
-    finalDecision: $("#finalDecision"),
-    calcJury: $("#calcJury"),
-    juryExport: $("#juryExport"),
-    jConfidence: $("#jConfidence"),
-    jVoice: $("#jVoice"),
-    jAudience: $("#jAudience"),
-    jBuild: $("#jBuild"),
+  // status
+  dot: $("#dot"),
+  stTitle: $("#stTitle"),
+  stSub: $("#stSub"),
 
-    // analysis
-    aWpm: $("#aWpm"),
-    aConf: $("#aConf"),
-    aFillers: $("#aFillers"),
-    tips: $("#tips"),
-    timeline: $("#timeline"),
+  // KPIs
+  kWpm: $("#kWpm"),
+  kConf: $("#kConf"),
+  kFill: $("#kFill"),
+  kTone: $("#kTone"),
 
-    // data table
-    sessionsTbl: $("#sessionsTbl"),
-    refreshData: $("#refreshData"),
+  // XR page
+  xrHud: $("#xrHud"),
+  xrAud: $("#xrAud"),
+  xrTele: $("#xrTele"),
+  xrVr: $("#xrVr"),
+  bClap: $("#bClap"),
+  bFocus: $("#bFocus"),
+  bDis: $("#bDis"),
+  randBars: $("#randBars"),
+  teleArea: $("#teleArea"),
+  teleApply: $("#teleApply"),
+  miniOut: $("#miniOut"),
+  pokeCoach: $("#pokeCoach"),
 
-    // stage
-    stageWrap: $("#stageWrap"),
-    cam: $("#cam"),
-    hud: $("#hud"),
-    audience: $("#audience"),
-    fx: $("#fx"),
-    captions: $("#captions"),
-    capText: $("#capText"),
-    capBadge: $("#capBadge"),
-    teleOverlay: $("#teleOverlay"),
-    teleOverlayText: $("#teleOverlayText"),
-    teleText: $("#teleText"),
-    teleSpeed: $("#teleSpeed"),
-    teleSize: $("#teleSize"),
+  // Coach
+  chat: $("#chat"),
+  chatInput: $("#chatInput"),
+  sendChat: $("#sendChat"),
 
-    toggleMirror: $("#toggleMirror"),
-    toggleAudience: $("#toggleAudience"),
-    toggleTele: $("#toggleTele"),
-    toggleHUD: $("#toggleHUD"),
-    startSession: $("#startSession"),
-    stopSession: $("#stopSession"),
+  // Judge
+  sClarity: $("#sClarity"),
+  sStab: $("#sStab"),
+  sEng: $("#sEng"),
+  sLang: $("#sLang"),
+  calcJudge: $("#calcJudge"),
+  finalScore: $("#finalScore"),
+  decision: $("#decision"),
+  makeReport: $("#makeReport"),
+  copyReport: $("#copyReport"),
+  report: $("#report"),
 
-    // stage text input
-    teleInput: $("#teleText") ? null : null,
-  };
+  // Reports
+  saveSession: $("#saveSession"),
+  sessions: $("#sessions"),
+  clearSessions: $("#clearSessions"),
+};
 
-  /* ---------- Core State ---------- */
-  const state = {
-    route: "demo",
-    scenario: { name: "قاعة مؤتمر", env: "conference" },
-    sessionRunning: false,
-    startedAt: 0,
-    timerId: null,
-    tickId: null,
+/* ---------- Safety: if element missing ---------- */
+function must(el, name) {
+  if (!el) console.warn("Missing element:", name);
+  return el;
+}
+Object.entries(els).forEach(([k, v]) => must(v, k));
 
-    // toggles
-    showHUD: true,
-    showAudience: true,
-    showTele: false,
-    mirror: false,
+/* ---------- State ---------- */
+const state = {
+  sessionOn: false,
+  hudOn: true,
+  audOn: false,
+  teleOn: false,
+  vrOn: false,
 
-    // metrics
-    wpm: 0,
-    energy: 0,
-    clarity: 0,
-    audience: 0,
-    confidence: 0,
-    fillers: 0,
-    tone: 0,
+  t: 0,
+  tickTimer: null,
+  teleTimer: null,
 
-    // knobs
-    pressure: 45,
-    audienceSense: 55,
-    coachMode: "soft",
-    fxOn: true,
-    ccOn: true,
-    autoTele: false,
+  // metrics
+  wpm: 0,
+  conf: 0,
+  filler: 0,
+  tone: 0,
 
-    // history (for timeline)
-    samples: [],
-  };
+  // audience mood
+  audPower: 60,
 
-  /* ---------- Boot Overlay (اختياري) ---------- */
-  function hideBoot() {
-    const b = $("#bootOverlay");
-    if (b) b.style.display = "none";
-  }
+  // tele
+  telePos: 0,
+};
 
-  /* ---------- Storage ---------- */
-  function loadSessions() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  }
+/* ---------- Helpers ---------- */
+function fmt(sec) {
+  const m = String(Math.floor(sec / 60)).padStart(2, "0");
+  const s = String(sec % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
 
-  function saveSessions(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  }
+function clamp(n, a, b) {
+  return Math.max(a, Math.min(b, n));
+}
 
-  function addSession(s) {
-    const list = loadSessions();
-    list.unshift(s);
-    saveSessions(list);
-    return list;
-  }
+function rand(a, b) {
+  return Math.floor(Math.random() * (b - a + 1)) + a;
+}
 
-  function wipeSessions() {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-
-  /* ---------- UI Utilities ---------- */
-  function setStatus(txt, ok = true) {
-    if (el.status) el.status.textContent = txt;
-    if (el.dot) {
-      el.dot.style.background = ok ? "var(--ok)" : "var(--warn)";
-      el.dot.style.boxShadow = ok
+function setStatus(mode, title, sub) {
+  // mode: ok|warn|bad
+  const color =
+    mode === "ok" ? "var(--ok)" : mode === "bad" ? "var(--bad)" : "var(--warn)";
+  if (els.dot) {
+    els.dot.style.background = color;
+    els.dot.style.boxShadow =
+      mode === "ok"
         ? "0 0 0 6px rgba(33,230,164,.14)"
+        : mode === "bad"
+        ? "0 0 0 6px rgba(255,77,109,.14)"
         : "0 0 0 6px rgba(255,206,58,.14)";
+  }
+  if (els.stTitle) els.stTitle.textContent = title;
+  if (els.stSub) els.stSub.textContent = sub;
+}
+
+/* ---------- Audience Engine ---------- */
+function buildAudience(power = 60) {
+  if (!els.audGrid) return;
+
+  els.audGrid.innerHTML = "";
+  const cols = 10;
+  const total = clamp(power, 20, 120);
+  const rows = Math.ceil(total / cols);
+
+  els.audGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  for (let i = 0; i < rows * cols; i++) {
+    const sp = document.createElement("span");
+    sp.style.opacity = (Math.random() * 0.45 + 0.35).toFixed(2);
+    els.audGrid.appendChild(sp);
+  }
+}
+
+function updateAudienceMood() {
+  if (!els.audGrid) return;
+
+  const power = state.audPower;
+  if (els.pillAud) els.pillAud.textContent = `AUD: ${power}`;
+
+  const nodes = $$("#audGrid span");
+  nodes.forEach((sp) => {
+    const r = Math.random() * 100;
+    const on = r < power;
+    sp.style.opacity = on ? "0.95" : "0.35";
+    sp.style.transform = on ? "translateY(-1px)" : "none";
+  });
+
+  // audience also influences confidence slightly
+  state.conf = clamp(state.conf + (power > 70 ? 1 : -1), 0, 100);
+}
+
+/* ---------- Teleprompter ---------- */
+function setTeleText(text) {
+  const t = (text || "").trim();
+  if (els.teleText) els.teleText.textContent = t || "اكتب نصك تحت… ثم تطبيق النص.";
+}
+
+function startTeleScroll() {
+  stopTeleScroll();
+  state.telePos = 0;
+
+  const speed = () => Number(els.teleSpeed?.value || 70);
+  state.teleTimer = setInterval(() => {
+    if (!state.sessionOn || !state.teleOn) return;
+    // move telePos
+    state.telePos += Math.max(1, Math.floor(speed() / 30));
+    // simulate scrolling by changing hint area / simple transform
+    if (els.teleText) {
+      els.teleText.style.transform = `translateY(-${Math.min(state.telePos, 120)}px)`;
     }
+    if (state.telePos > 220) state.telePos = 0;
+  }, 220);
+}
+
+function stopTeleScroll() {
+  if (state.teleTimer) clearInterval(state.teleTimer);
+  state.teleTimer = null;
+  if (els.teleText) els.teleText.style.transform = "translateY(0)";
+}
+
+/* ---------- HUD ---------- */
+function setHudSize(px) {
+  const v = Number(px || 18);
+  if (els.lens) els.lens.style.fontSize = `${v}px`;
+}
+
+function hudHint(msg) {
+  if (!els.hudHint) return;
+  els.hudHint.textContent = msg;
+}
+
+/* ---------- WOW Demo (Particles-ish + glow pulse) ---------- */
+function wowPulse() {
+  if (!els.lens) return;
+  els.lens.animate(
+    [
+      { transform: "scale(1)", filter: "saturate(1)" },
+      { transform: "scale(1.01)", filter: "saturate(1.15)" },
+      { transform: "scale(1)", filter: "saturate(1)" },
+    ],
+    { duration: 850, easing: "ease-in-out" }
+  );
+}
+
+/* ---------- Metrics (Mock realistic) ---------- */
+function computeMetricsTick() {
+  // WPM baseline 120-160
+  const base = 140 + rand(-18, 18);
+  state.wpm = clamp(base + (state.sessionOn ? rand(-10, 10) : 0), 90, 210);
+
+  // filler increases when wpm too high or confidence low
+  const tooFast = state.wpm > 170 ? 1 : 0;
+  state.filler = clamp(state.filler + rand(-1, 2) + tooFast, 0, 30);
+
+  // tone (0-100) affected by confidence
+  state.tone = clamp(50 + Math.floor(state.conf / 2) + rand(-10, 10), 0, 100);
+
+  // confidence evolves
+  state.conf = clamp(state.conf + rand(-2, 3) - (tooFast ? 1 : 0), 0, 100);
+
+  // update KPIs
+  if (els.kWpm) els.kWpm.textContent = String(state.wpm);
+  if (els.kConf) els.kConf.textContent = `${state.conf}%`;
+  if (els.kFill) els.kFill.textContent = String(state.filler);
+  if (els.kTone) els.kTone.textContent = String(state.tone);
+
+  // update pills
+  if (els.pillMode) els.pillMode.textContent = state.sessionOn ? "MODE: LIVE" : "MODE: READY";
+  if (els.pillHud) els.pillHud.textContent = `HUD: ${state.hudOn ? "ON" : "OFF"}`;
+
+  // dynamic hints
+  if (state.wpm > 170) hudHint("سرعتك عالية… خذ نفس وخفّف 10% 🎯");
+  else if (state.filler > 14) hudHint("قلّل: (يعني/اممم)… استبدلها بسكتة قصيرة ✨");
+  else if (state.conf < 35) hudHint("ثبّت نظرك للأمام… وتكلم بجملة قصيرة قوية 💪");
+  else hudHint("ممتاز… كمّل بنفس النسق 🔥");
+}
+
+/* ---------- Session Controls ---------- */
+function startSession() {
+  if (state.sessionOn) return;
+  state.sessionOn = true;
+  state.t = 0;
+
+  setStatus("ok", "جلسة شغالة", "HUD + محاكاة XR تعمل الآن");
+  if (els.startBtn) els.startBtn.disabled = true;
+  if (els.stopBtn) els.stopBtn.disabled = false;
+
+  // start tick
+  if (state.tickTimer) clearInterval(state.tickTimer);
+  state.tickTimer = setInterval(() => {
+    state.t++;
+    if (els.pillTime) els.pillTime.textContent = fmt(state.t);
+    computeMetricsTick();
+    if (state.audOn) updateAudienceMood();
+  }, 1000);
+
+  // tele
+  if (state.teleOn) startTeleScroll();
+
+  // wow
+  wowPulse();
+}
+
+function stopSession() {
+  if (!state.sessionOn) return;
+  state.sessionOn = false;
+
+  setStatus("warn", "تم الإيقاف", "تقدر تحفظ الجلسة أو تولّد تقرير");
+  if (els.startBtn) els.startBtn.disabled = false;
+  if (els.stopBtn) els.stopBtn.disabled = true;
+
+  if (state.tickTimer) clearInterval(state.tickTimer);
+  state.tickTimer = null;
+
+  stopTeleScroll();
+}
+
+/* ---------- Toggles ---------- */
+function toggleHUD() {
+  state.hudOn = !state.hudOn;
+  if (els.hud) els.hud.style.display = state.hudOn ? "block" : "none";
+  setStatus("ok", state.hudOn ? "HUD شغال" : "HUD مقفول", "تقدر تفتحه بأي وقت");
+  wowPulse();
+}
+
+function toggleAudience() {
+  state.audOn = !state.audOn;
+  if (els.audience) els.audience.style.display = state.audOn ? "block" : "none";
+  if (state.audOn) {
+    buildAudience(state.audPower);
+    updateAudienceMood();
+    setStatus("ok", "الجمهور شغال", "مزاجه يتغير حسب الأداء 😄");
+  } else {
+    setStatus("ok", "الجمهور مقفول", "خفّ التوتر… ما أحد يطالع 🤝");
+  }
+  wowPulse();
+}
+
+function toggleTele() {
+  state.teleOn = !state.teleOn;
+  if (els.tele) els.tele.style.display = state.teleOn ? "block" : "none";
+  if (state.teleOn) {
+    startTeleScroll();
+    setStatus("ok", "التلقين شغال", "السرعة من السلايدر");
+  } else {
+    stopTeleScroll();
+    setStatus("ok", "التلقين مقفول", "تقدر ترجع له");
+  }
+  wowPulse();
+}
+
+function toggleVR() {
+  state.vrOn = !state.vrOn;
+  if (els.vr) els.vr.style.display = state.vrOn ? "block" : "none";
+  setStatus("ok", state.vrOn ? "VR Concept ON" : "VR Concept OFF", "محاكاة بدون نظارة");
+  wowPulse();
+}
+
+/* ---------- XR page extras ---------- */
+function randomizeBars() {
+  const a = rand(15, 100);
+  const b = rand(15, 100);
+  const c = rand(15, 100);
+  if (els.bClap) els.bClap.style.transform = `scaleX(${a / 100})`;
+  if (els.bFocus) els.bFocus.style.transform = `scaleX(${b / 100})`;
+  if (els.bDis) els.bDis.style.transform = `scaleX(${c / 100})`;
+  if (els.miniOut) els.miniOut.textContent = `تفاعل الجمهور: تصفيق ${a}% • تركيز ${b}% • تشتت ${c}%`;
+}
+
+/* ---------- Coach (Mock smart) ---------- */
+function pushChat(text, who = "bot") {
+  if (!els.chat) return;
+  const div = document.createElement("div");
+  div.className = `msg ${who}`;
+  div.textContent = text;
+  els.chat.appendChild(div);
+  els.chat.scrollTop = els.chat.scrollHeight;
+}
+
+function coachAnswer(q) {
+  const s = (q || "").toLowerCase();
+
+  if (s.includes("مقدمة") || s.includes("ابدأ") || s.includes("افتتاح")) {
+    return "ابدأ بجملة واحدة قوية + توقف نصف ثانية. مثال: (اليوم… راح أوريكم كيف تتحول الثقة إلى أداء). ثم ادخل على 3 نقاط واضحة.";
+  }
+  if (s.includes("توتر") || s.includes("خوف") || s.includes("ارتباك")) {
+    return "قاعدة ذهبية: نفس عميق 4 ثواني، ثم جملة قصيرة. لا تكثر تفاصيل. خلي عينك على نقطة ثابتة فوق الجمهور.";
+  }
+  if (s.includes("سرعة") || s.includes("wpm")) {
+    return "هدفك 120–160 كلمة/دقيقة. إذا تعديت 170: اقسم الفكرة لجملتين، وخذ سكتة بدل (اممم).";
+  }
+  if (s.includes("تحكيم") || s.includes("درجات") || s.includes("لجنة")) {
+    return "ركز على: وضوح (ترتيب)، ثبات (نبرة)، تفاعل (سؤال للجمهور)، لغة (عبارات دقيقة). لا تحاول ترضي الجميع… رضِ المعايير.";
+  }
+  return "نصيحة سريعة: قلّل الحشو، ارفع الثقة، وخلي نهاية كل فقرة (قرار/خلاصة) — الجمهور يحب اللي يفهمه بسرعة 😄";
+}
+
+/* ---------- Judge ---------- */
+function calcJudge() {
+  const c = Number(els.sClarity?.value || 0);
+  const s = Number(els.sStab?.value || 0);
+  const e = Number(els.sEng?.value || 0);
+  const l = Number(els.sLang?.value || 0);
+
+  // weighted score
+  const score = Math.round(c * 0.28 + s * 0.26 + e * 0.24 + l * 0.22);
+
+  let decision = "يمرّ";
+  if (score >= 85) decision = "ممتاز — جاهز للعرض الرسمي";
+  else if (score >= 70) decision = "جيد جدًا — يحتاج صقل بسيط";
+  else if (score >= 55) decision = "جيد — يحتاج تدريب إضافي";
+  else decision = "غير جاهز — ركّز على الوضوح والثبات";
+
+  if (els.finalScore) els.finalScore.textContent = score;
+  if (els.decision) els.decision.textContent = decision;
+
+  return { score, decision, c, s, e, l };
+}
+
+function buildReport() {
+  const r = calcJudge();
+  const txt =
+`SpeakXR X-Stage PRO — Jury Report
+--------------------------------
+Score: ${r.score}
+Decision: ${r.decision}
+
+Breakdown:
+- Clarity: ${r.c}
+- Stability: ${r.s}
+- Engagement: ${r.e}
+- Language: ${r.l}
+
+Session Metrics (Mock):
+- WPM: ${state.wpm}
+- Confidence: ${state.conf}%
+- Fillers: ${state.filler}
+- Tone: ${state.tone}
+
+Recommendations:
+1) Keep WPM within 120–160.
+2) Replace fillers with short pause.
+3) End each segment with a clear takeaway.
+`;
+  if (els.report) els.report.textContent = txt;
+  return txt;
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus("ok", "تم النسخ", "التقرير جاهز للصق");
+  } catch {
+    setStatus("warn", "ماقدر أنسخ", "انسخ يدويًا من مربع التقرير");
+  }
+}
+
+/* ---------- Sessions Storage ---------- */
+const KEY = "speakxr_sessions_v1";
+
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSessions(list) {
+  localStorage.setItem(KEY, JSON.stringify(list));
+}
+
+function renderSessions() {
+  if (!els.sessions) return;
+  const list = loadSessions();
+  els.sessions.innerHTML = "";
+
+  if (!list.length) {
+    els.sessions.innerHTML = `<div class="muted">لا يوجد جلسات محفوظة… احفظ جلسة من زر “حفظ الجلسة”.</div>`;
+    return;
   }
 
-  function setBar(barEl, value01) {
-    if (!barEl) return;
-    barEl.style.width = `${clamp(value01, 0, 1) * 100}%`;
-  }
+  list.slice().reverse().forEach((s) => {
+    const row = document.createElement("div");
+    row.className = "sessionItem";
+    row.innerHTML = `
+      <div>
+        <b>${s.title}</b>
+        <div class="muted" style="margin-top:4px">${s.time}</div>
+      </div>
+      <div>
+        <b>${s.score ?? "—"}</b>
+        <div class="muted" style="margin-top:4px">${s.decision ?? ""}</div>
+      </div>
+    `;
+    els.sessions.appendChild(row);
+  });
+}
 
-  function fmtTime(sec) {
-    const m = String(Math.floor(sec / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
-    return `${m}:${s}`;
-  }
-
-  /* ---------- Router / Tabs ---------- */
-  function go(route) {
-    state.route = route;
-
-    // tabs
-    el.tabBtns.forEach((b) => b.classList.toggle("on", b.dataset.route === route));
-
-    // views
-    el.views.forEach((v) => v.classList.toggle("on", v.dataset.view === route));
-
-    // update status
-    const map = {
-      demo: "جاهز • وضع Demo",
-      webxr: "WebXR • فحص الدعم",
-      executive: "Executive Dashboard",
-      settings: "الإعدادات",
-      jury: "لوحة التحكيم",
-      analysis: "تحليل الأداء",
-      data: "بيانات التدريب",
-      stage: "XR Stage",
-    };
-    setStatus(map[route] || "جاهز", true);
-
-    // hash
-    try {
-      history.replaceState({}, "", `#${route}`);
-    } catch {}
-  }
-
-  function initRouter() {
-    // click
-    el.tabBtns.forEach((b) => b.addEventListener("click", () => go(b.dataset.route)));
-
-    // deep link
-    const h = (location.hash || "").replace("#", "").trim();
-    if (h) go(h);
-
-    // stage quick
-    if (el.goStageBtn) el.goStageBtn.addEventListener("click", () => go("stage"));
-    if (el.goStage2) el.goStage2.addEventListener("click", () => go("stage"));
-    if (el.goStage3) el.goStage3.addEventListener("click", () => go("stage"));
-  }
-
-  /* ---------- Scenario ---------- */
-  function setScenario(name, env) {
-    state.scenario = { name, env };
-    setStatus(`سيناريو: ${name} • بيئة: ${env}`, true);
-
-    // coach hint
-    if (el.coachBox) {
-      const hints = {
-        "مقابلة": "ركّز على إجابات قصيرة (15–25 ثانية) مع ابتسامة ثابتة.",
-        "استوديو الأخبار": "سرعة متوسطة، نبرة ثابتة، لا تكثر (يعني/اممم).",
-        "قاعة مؤتمر": "افتتاحية خطّافة + 3 نقاط + خاتمة قوية.",
-        "تقرير ميداني": "صوت أعلى 10%، واسم المكان أولاً، ثم التفاصيل.",
-        "بودكاست": "احكي قصة قصيرة، استخدم تشبيهات، وخفف الرسميات.",
-        "قاعة تدريب": "قسّم الشرح خطوات واضحة مع سؤال كل دقيقة.",
-      };
-      el.coachBox.textContent = hints[name] || "جاهز…";
-    }
-  }
-
-  function initScenarios() {
-    el.scenarioBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setScenario(btn.dataset.sc, btn.dataset.env);
-      });
-    });
-
-    if (el.pickScenarioBtn) {
-      el.pickScenarioBtn.addEventListener("click", () => {
-        const all = [
-          ["مقابلة", "conference"],
-          ["استوديو الأخبار", "studio"],
-          ["قاعة مؤتمر", "conference"],
-          ["تقرير ميداني", "outdoor"],
-          ["بودكاست", "podcast"],
-          ["قاعة تدريب", "studio"],
-        ];
-        const pick = all[Math.floor(Math.random() * all.length)];
-        setScenario(pick[0], pick[1]);
-      });
-    }
-  }
-
-  /* ---------- Start/Stop ALL ---------- */
-  function startAll() {
-    if (state.sessionRunning) return;
-    go("stage");
-    startSession();
-  }
-
-  function stopAll() {
-    stopSession();
-  }
-
-  function initTopActions() {
-    if (el.startAll) el.startAll.addEventListener("click", startAll);
-    if (el.stopAll) el.stopAll.addEventListener("click", stopAll);
-  }
-
-  /* ---------- Settings ---------- */
-  function initSettings() {
-    if (el.pressure) {
-      state.pressure = Number(el.pressure.value || 45);
-      el.pressure.addEventListener("input", () => (state.pressure = Number(el.pressure.value)));
-    }
-    if (el.audienceSense) {
-      state.audienceSense = Number(el.audienceSense.value || 55);
-      el.audienceSense.addEventListener("input", () => (state.audienceSense = Number(el.audienceSense.value)));
-    }
-    if (el.autoTele) {
-      state.autoTele = !!el.autoTele.checked;
-      el.autoTele.addEventListener("change", () => (state.autoTele = !!el.autoTele.checked));
-    }
-    if (el.fxOn) {
-      state.fxOn = !!el.fxOn.checked;
-      el.fxOn.addEventListener("change", () => (state.fxOn = !!el.fxOn.checked));
-    }
-    if (el.ccOn) {
-      state.ccOn = !!el.ccOn.checked;
-      el.ccOn.addEventListener("change", () => (state.ccOn = !!el.ccOn.checked));
-    }
-
-    // coach mode seg
-    if (el.coachModeSeg) {
-      const btns = $$("button", el.coachModeSeg);
-      btns.forEach((b) => {
-        b.addEventListener("click", () => {
-          btns.forEach((x) => x.classList.remove("on"));
-          b.classList.add("on");
-          state.coachMode = b.dataset.mode || "soft";
-          setStatus(`نمط المدرب: ${state.coachMode}`, true);
-        });
-      });
-    }
-  }
-
-  /* ---------- WebXR (فحص بسيط) ---------- */
-  async function checkXR() {
-    if (!el.xrSupport) return;
-    try {
-      const xr = navigator.xr;
-      if (!xr) {
-        el.xrSupport.textContent = "غير متاح (navigator.xr غير موجود)";
-        return;
-      }
-      const ok = await xr.isSessionSupported("immersive-ar");
-      el.xrSupport.textContent = ok ? "مدعوم ✅ (immersive-ar)" : "غير مدعوم ❌";
-    } catch (e) {
-      el.xrSupport.textContent = "خطأ في الفحص";
-    }
-  }
-
-  function initWebXR() {
-    if (el.checkXRBtn) el.checkXRBtn.addEventListener("click", checkXR);
-    if (el.startAR) el.startAR.addEventListener("click", () => {
-      // لا نفتح جلسة XR حقيقية هنا (بسبب iOS)، لكن نعطي إحساس "تشغيل"
-      setStatus("AR: تم التبديل لوضع XR Demo", true);
-      go("stage");
-      state.showHUD = true;
-      state.showAudience = true;
-      state.showTele = true;
-      syncStageToggles();
-    });
-  }
-
-  /* ---------- Stage Toggles ---------- */
-  function syncStageToggles() {
-    // HUD
-    if (el.hud) el.hud.style.display = state.showHUD ? "block" : "none";
-
-    // Audience canvas layer (we use canvas in HTML; but visuals are drawn)
-    if (el.audience) el.audience.style.display = state.showAudience ? "block" : "none";
-
-    // Tele overlay
-    if (el.teleOverlay) el.teleOverlay.style.display = state.showTele ? "flex" : "none";
-
-    // Captions
-    if (el.captions) el.captions.style.display = state.ccOn ? "flex" : "none";
-
-    // FX
-    if (el.fx) el.fx.style.display = state.fxOn ? "block" : "none";
-  }
-
-  function initStageButtons() {
-    if (el.toggleHUD) el.toggleHUD.addEventListener("click", () => { state.showHUD = !state.showHUD; syncStageToggles(); });
-    if (el.toggleAudience) el.toggleAudience.addEventListener("click", () => { state.showAudience = !state.showAudience; syncStageToggles(); });
-    if (el.toggleTele) el.toggleTele.addEventListener("click", () => { state.showTele = !state.showTele; syncStageToggles(); });
-    if (el.toggleMirror) el.toggleMirror.addEventListener("click", () => {
-      state.mirror = !state.mirror;
-      if (el.cam) el.cam.style.transform = state.mirror ? "scaleX(-1)" : "none";
-      setStatus(state.mirror ? "مرآة: ON" : "مرآة: OFF", true);
-    });
-
-    if (el.startSession) el.startSession.addEventListener("click", startSession);
-    if (el.stopSession) el.stopSession.addEventListener("click", stopSession);
-  }
-
-  /* ---------- Camera (اختياري: إذا فشل نحاكي) ---------- */
-  async function tryStartCamera() {
-    if (!el.cam) return false;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
-      el.cam.srcObject = stream;
-      return true;
-    } catch {
-      // no camera / not https / permission denied
-      return false;
-    }
-  }
-
-  function stopCamera() {
-    if (!el.cam || !el.cam.srcObject) return;
-    const s = el.cam.srcObject;
-    try {
-      s.getTracks().forEach((t) => t.stop());
-    } catch {}
-    el.cam.srcObject = null;
-  }
-
-  /* ---------- Metrics Engine (Mock “حقيقي” بالإحساس) ---------- */
-  function computeMetrics() {
-    // pressure influences volatility
-    const p = state.pressure / 100;
-
-    // scenario baseline
-    const base = {
-      "مقابلة": { w: 145, e: 58, c: 72, a: 60 },
-      "استوديو الأخبار": { w: 155, e: 52, c: 78, a: 58 },
-      "قاعة مؤتمر": { w: 140, e: 66, c: 74, a: 70 },
-      "تقرير ميداني": { w: 165, e: 72, c: 68, a: 62 },
-      "بودكاست": { w: 130, e: 60, c: 80, a: 65 },
-      "قاعة تدريب": { w: 135, e: 62, c: 76, a: 68 },
-    }[state.scenario.name] || { w: 145, e: 60, c: 75, a: 65 };
-
-    // wpm target + noise
-    const wpm = clamp(Math.round(base.w + rnd(-18, 18) * (0.6 + p)), 90, 200);
-    const energy = clamp(Math.round(base.e + rnd(-18, 18) * (0.7 + p)), 10, 100);
-    const clarity = clamp(Math.round(base.c + rnd(-14, 14) * (0.6 + p)), 10, 100);
-
-    // audience responds to energy + clarity and sensitivity
-    const sense = state.audienceSense / 100;
-    let audience = base.a + (energy - 55) * 0.35 + (clarity - 70) * 0.28 + rnd(-10, 10) * sense;
-    audience = clamp(Math.round(audience), 0, 100);
-
-    // derived
-    const confidence = clamp(Math.round((clarity * 0.55 + energy * 0.35 + audience * 0.25) / 1.15), 0, 100);
-    const fillers = clamp(Math.round((100 - clarity) * 0.18 + rnd(0, 8) + p * 6), 0, 25);
-    const tone = clamp(Math.round((energy * 0.6 + clarity * 0.4) / 1.0 + rnd(-6, 6)), 0, 100);
-
-    state.wpm = wpm;
-    state.energy = energy;
-    state.clarity = clarity;
-    state.audience = audience;
-    state.confidence = confidence;
-    state.fillers = fillers;
-    state.tone = tone;
-
-    // sample for timeline
-    state.samples.push({
-      t: Math.floor((Date.now() - state.startedAt) / 1000),
-      wpm, energy, confidence,
-    });
-    if (state.samples.length > 220) state.samples.shift();
-  }
-
-  /* ---------- HUD update ---------- */
-  function updateHUD() {
-    // mini stats cards
-    if (el.wpmV) el.wpmV.textContent = state.wpm ? String(state.wpm) : "—";
-    if (el.enV) el.enV.textContent = state.energy ? `${state.energy}%` : "—";
-    if (el.clV) el.clV.textContent = state.clarity ? `${state.clarity}%` : "—";
-    if (el.auV) el.auV.textContent = state.audience ? `${state.audience}%` : "—";
-
-    setBar(el.wpmBar, (state.wpm - 90) / (200 - 90));
-    setBar(el.enBar, state.energy / 100);
-    setBar(el.clBar, state.clarity / 100);
-    setBar(el.auBar, state.audience / 100);
-
-    // last report mini (live snapshot)
-    if (el.rScore) el.rScore.textContent = computeFinalScore().toFixed(0);
-    if (el.rDecision) el.rDecision.textContent = computeDecision();
-    if (el.rSummary) el.rSummary.textContent = coachSummary();
-    if (el.rCount) el.rCount.textContent = String(loadSessions().length);
-
-    // KPIs
-    const list = loadSessions();
-    if (el.kpiSessions) el.kpiSessions.textContent = String(list.length);
-    if (el.exSessions) el.exSessions.textContent = String(list.length);
-    if (el.rCount) el.rCount.textContent = String(list.length);
-
-    const best = list.reduce((m, s) => Math.max(m, s.score || 0), 0);
-    if (el.kpiBest) el.kpiBest.textContent = best ? String(best) : "—";
-    if (el.exBest) el.exBest.textContent = best ? String(best) : "—";
-    if (el.kpiReady) el.kpiReady.textContent = best >= 82 ? "Ready" : "Training";
-
-    if (el.exLast) el.exLast.textContent = list[0]?.scenario || "—";
-    if (el.exReady) el.exReady.textContent = best >= 82 ? "Ready ✅" : "Needs polish";
-
-    if (el.execText) el.execText.textContent = executiveText();
-
-    // coach box live
-    if (el.coachBox && state.sessionRunning) el.coachBox.textContent = coachLine();
-
-    // captions
-    if (el.capText && state.ccOn && state.sessionRunning) el.capText.textContent = captionsLine();
-  }
-
-  /* ---------- Coach / Captions ---------- */
-  function coachLine() {
-    const mode = state.coachMode;
-    const weak = [];
-    if (state.wpm > 170) weak.push("خفّف السرعة شوي");
-    if (state.wpm < 110) weak.push("ارفع السرعة شوي");
-    if (state.fillers > 10) weak.push("قلّل (يعني/اممم)");
-    if (state.clarity < 65) weak.push("وضّح الجمل وخفف التشتت");
-    if (state.energy < 45) weak.push("ارفع الطاقة + نبرة");
-    if (state.audience < 55) weak.push("أضف قصة/مثال يعيد الجمهور");
-
-    const best = [];
-    if (state.clarity >= 78) best.push("وضوح ممتاز");
-    if (state.confidence >= 78) best.push("ثقة عالية");
-    if (state.audience >= 72) best.push("الجمهور متفاعل");
-
-    const n = weak.length ? weak[0] : "استمر… الأداء ثابت";
-    const b = best.length ? ` • ✅ ${best[0]}` : "";
-
-    if (mode === "jury") return `🧑‍⚖️ ملاحظة لجنة: ${n}.${b}`;
-    if (mode === "direct") return `🎯 تعديل فوري: ${n}.${b}`;
-    return `🤝 ممتاز… ${n}.${b}`;
-  }
-
-  function coachSummary() {
-    const score = computeFinalScore();
-    if (score >= 88) return "جاهز للعرض الرسمي (مستوى مبهر)";
-    if (score >= 80) return "قوي جدًا… يحتاج لمسة إيقاع/حشوية";
-    if (score >= 70) return "جيد… يحتاج وضوح + بناء أقوى";
-    return "ابدأ بتقسيم الفكرة إلى 3 نقاط واضحة";
-  }
-
-  function captionsLine() {
-    const s = state.scenario.name;
-    const hints = [
-      `(${s}) افتتح بجملة واحدة خطّافة… ثم ادخل بالنقطة الأولى.`,
-      `خفّف السرعة 5% وخلك واضح: (فكرة → دليل → نتيجة).`,
-      `الجمهور يبغى مثال… عطهم مثال واقعي في 10 ثواني.`,
-      `نبرة ممتازة… الآن ركّز على خاتمة بقرار واضح.`,
-    ];
-    return hints[Math.floor(Math.random() * hints.length)];
-  }
-
-  /* ---------- Scoring / Decision ---------- */
-  function computeFinalScore() {
-    // weighting
-    const wpmScore = 100 - clamp(Math.abs(state.wpm - 145) * 0.8, 0, 35);
-    const score =
-      wpmScore * 0.18 +
-      state.clarity * 0.30 +
-      state.energy * 0.18 +
-      state.audience * 0.22 +
-      state.confidence * 0.20 -
-      state.fillers * 0.7;
-
-    return clamp(score, 0, 100);
-  }
-
-  function computeDecision() {
-    const score = computeFinalScore();
-    if (score >= 88) return "✅ اعتماد فوري";
-    if (score >= 80) return "✅ ممتاز — جاهز مع تحسين بسيط";
-    if (score >= 70) return "⚠️ جيد — يحتاج تدريب إضافي";
-    return "❌ يحتاج إعادة بناء";
-  }
-
-  /* ---------- FX Canvas ---------- */
-  function fxResize() {
-    if (!el.fx) return;
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    const r = el.fx.getBoundingClientRect();
-    el.fx.width = Math.floor(r.width * dpr);
-    el.fx.height = Math.floor(r.height * dpr);
-  }
-
-  const fx = {
-    parts: [],
-    last: 0,
+function saveCurrentSession() {
+  const list = loadSessions();
+  const now = new Date();
+  const time = now.toLocaleString("ar-SA");
+  const judge = calcJudge();
+  const item = {
+    id: String(now.getTime()),
+    title: `جلسة #${list.length + 1}`,
+    time,
+    wpm: state.wpm,
+    conf: state.conf,
+    filler: state.filler,
+    tone: state.tone,
+    score: judge.score,
+    decision: judge.decision,
   };
+  list.push(item);
+  saveSessions(list);
+  renderSessions();
+  setStatus("ok", "تم حفظ الجلسة", "تلقاها في صفحة التقارير");
+}
 
-  function fxInit() {
-    if (!el.fx) return;
-    fxResize();
-    fx.parts = Array.from({ length: 70 }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      vx: rnd(-0.015, 0.015),
-      vy: rnd(-0.02, -0.005),
-      s: rnd(0.6, 2.0),
-      o: rnd(0.12, 0.45),
-    }));
-    fx.last = performance.now();
-    requestAnimationFrame(fxTick);
+/* ---------- Theme Toggle (simple) ---------- */
+function toggleTheme() {
+  document.body.classList.toggle("themeAlt");
+  setStatus("ok", "تم تبديل النمط", "ذوق… أنت صاحب منصة 😄");
+  wowPulse();
+}
+
+/* ---------- Wire Events ---------- */
+function wire() {
+  // session
+  els.startBtn?.addEventListener("click", startSession);
+  els.stopBtn?.addEventListener("click", stopSession);
+
+  // theme
+  els.themeBtn?.addEventListener("click", toggleTheme);
+
+  // toggles
+  els.toggleHUD?.addEventListener("click", toggleHUD);
+  els.toggleAudience?.addEventListener("click", toggleAudience);
+  els.toggleTele?.addEventListener("click", toggleTele);
+  els.toggleVR?.addEventListener("click", toggleVR);
+
+  // sliders
+  els.hudSize?.addEventListener("input", (e) => setHudSize(e.target.value));
+  els.audPower?.addEventListener("input", (e) => {
+    state.audPower = Number(e.target.value);
+    if (state.audOn) updateAudienceMood();
+  });
+  els.teleSpeed?.addEventListener("input", () => {
+    if (state.teleOn) startTeleScroll();
+  });
+
+  // script apply
+  els.applyScript?.addEventListener("click", () => {
+    setTeleText(els.scriptInput?.value || "");
+    setStatus("ok", "تم تطبيق النص", "التلقين جاهز");
+    wowPulse();
+  });
+
+  // wow
+  els.wowBtn?.addEventListener("click", () => {
+    randomizeBars();
+    if (!state.audOn) toggleAudience();
+    if (!state.teleOn) toggleTele();
+    wowPulse();
+    setStatus("ok", "WOW Demo", "المنصة الآن “تتحرك” 👏");
+  });
+
+  // XR page toggles mirror
+  els.xrHud?.addEventListener("click", toggleHUD);
+  els.xrAud?.addEventListener("click", toggleAudience);
+  els.xrTele?.addEventListener("click", toggleTele);
+  els.xrVr?.addEventListener("click", toggleVR);
+
+  els.randBars?.addEventListener("click", randomizeBars);
+
+  // tele apply from XR
+  els.teleApply?.addEventListener("click", () => {
+    setTeleText(els.teleArea?.value || "");
+    setStatus("ok", "تم تطبيق التلقين", "جاهز على المسرح");
+  });
+
+  // poke coach
+  els.pokeCoach?.addEventListener("click", () => {
+    const tip = coachAnswer("نصيحة");
+    els.miniOut && (els.miniOut.textContent = tip);
+    setStatus("ok", "نصيحة جاهزة", "روح صفحة المدرب لو تبي أكثر");
+  });
+
+  // Coach chat
+  els.sendChat?.addEventListener("click", () => {
+    const q = (els.chatInput?.value || "").trim();
+    if (!q) return;
+    pushChat(q, "me");
+    els.chatInput.value = "";
+    setTimeout(() => pushChat(coachAnswer(q), "bot"), 250);
+  });
+  els.chatInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") els.sendChat?.click();
+  });
+
+  // Judge
+  els.calcJudge?.addEventListener("click", () => {
+    const r = calcJudge();
+    setStatus("ok", "تم حساب الدرجة", `النتيجة: ${r.score}`);
+    wowPulse();
+  });
+  els.makeReport?.addEventListener("click", () => {
+    const txt = buildReport();
+    setStatus("ok", "تم توليد التقرير", "تقدر تنسخه أو تحفظ جلسة");
+    wowPulse();
+    return txt;
+  });
+  els.copyReport?.addEventListener("click", () => {
+    const txt = els.report?.textContent || buildReport();
+    copyText(txt);
+  });
+
+  // Reports
+  els.saveSession?.addEventListener("click", saveCurrentSession);
+  els.clearSessions?.addEventListener("click", () => {
+    localStorage.removeItem(KEY);
+    renderSessions();
+    setStatus("warn", "تم المسح", "كل الجلسات انحذفت");
+  });
+
+  // init visuals
+  setHudSize(els.hudSize?.value || 18);
+  state.audPower = Number(els.audPower?.value || 60);
+  buildAudience(state.audPower);
+  randomizeBars();
+}
+
+/* ---------- Boot ---------- */
+function boot() {
+  initRouter();
+  wire();
+  renderSessions();
+  setStatus("ok", "جاهز", "اضغط “بدء جلسة” وخلنا نطلع أداء رسمي");
+  // seed
+  state.conf = rand(45, 70);
+  computeMetricsTick();
+}
+window.addEventListener("DOMContentLoaded", boot);
+
+/* ---------- Optional alt theme ---------- */
+(() => {
+  const css = document.createElement("style");
+  css.textContent = `
+  body.themeAlt{
+    background:
+      radial-gradient(1200px 600px at 20% 10%, #ffb30022, transparent 55%),
+      radial-gradient(900px 500px at 90% 25%, #00d4ff22, transparent 55%),
+      radial-gradient(900px 600px at 40% 90%, #ff4d6d18, transparent 60%),
+      linear-gradient(180deg, #070815, #101b3c);
   }
-
-  function fxTick(ts) {
-    if (!el.fx) return;
-    const ctx = el.fx.getContext("2d");
-    if (!ctx) return;
-
-    const dt = Math.min(32, ts - fx.last);
-    fx.last = ts;
-
-    // clear
-    ctx.clearRect(0, 0, el.fx.width, el.fx.height);
-
-    if (!state.fxOn || !state.sessionRunning) {
-      requestAnimationFrame(fxTick);
-      return;
-    }
-
-    // energy affects intensity
-    const intensity = clamp(state.energy / 100, 0.2, 1);
-
-    // draw
-    const w = el.fx.width;
-    const h = el.fx.height;
-
-    // subtle glow wash
-    ctx.globalAlpha = 0.12 * intensity;
-    const grd = ctx.createRadialGradient(w * 0.55, h * 0.35, 10, w * 0.55, h * 0.35, Math.max(w, h) * 0.6);
-    grd.addColorStop(0, "rgba(124,92,255,.9)");
-    grd.addColorStop(0.55, "rgba(33,230,164,.55)");
-    grd.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, w, h);
-
-    // particles
-    fx.parts.forEach(p => {
-      p.x += p.vx * (dt / 16) * (0.8 + intensity);
-      p.y += p.vy * (dt / 16) * (0.8 + intensity);
-
-      if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
-      if (p.x < -0.05) p.x = 1.05;
-      if (p.x > 1.05) p.x = -0.05;
-
-      const px = p.x * w;
-      const py = p.y * h;
-
-      ctx.globalAlpha = p.o * intensity;
-      ctx.beginPath();
-      ctx.arc(px, py, p.s * (1 + intensity * 0.8), 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,.85)";
-      ctx.fill();
-
-      // trailing glow
-      ctx.globalAlpha = p.o * 0.35 * intensity;
-      ctx.beginPath();
-      ctx.arc(px, py, p.s * 5.5 * intensity, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(124,92,255,.35)";
-      ctx.fill();
-    });
-
-    requestAnimationFrame(fxTick);
+  .msg{
+    max-width:78%;
+    padding:10px 12px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    line-height:1.6;
+    margin: 10px 0;
   }
-
-  /* ---------- Audience Canvas ---------- */
-  function audienceResize() {
-    if (!el.audience) return;
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    const r = el.audience.getBoundingClientRect();
-    el.audience.width = Math.floor(r.width * dpr);
-    el.audience.height = Math.floor(r.height * dpr);
+  .msg.me{margin-right:auto; background: rgba(124,92,255,.14); border-color: rgba(124,92,255,.25)}
+  .msg.bot{margin-left:auto; background: rgba(33,230,164,.12); border-color: rgba(33,230,164,.22)}
+  .sessionItem{
+    padding:12px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,0,.20);
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    margin:10px 0;
   }
-
-  function drawAudience() {
-    if (!el.audience) return;
-    const ctx = el.audience.getContext("2d");
-    if (!ctx) return;
-
-    const w = el.audience.width;
-    const h = el.audience.height;
-
-    ctx.clearRect(0, 0, w, h);
-
-    if (!state.showAudience || !state.sessionRunning) return;
-
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-
-    // audience intensity
-    const a = state.audience / 100;
-    const rows = 10;
-    const cols = 18;
-
-    const cellW = w / cols;
-    const cellH = h / rows;
-
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-
-   
+  `;
+  document.head.appendChild(css);
+})();
