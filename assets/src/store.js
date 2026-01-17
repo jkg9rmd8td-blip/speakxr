@@ -1,27 +1,35 @@
-const KEY = "speakxr_sessions_v1";
+const KEY = "speakxr_xstage_pro_sessions_v1";
 
 export function createStore(){
-  function load(){
+  function getSessions(){
     try{
-      return JSON.parse(localStorage.getItem(KEY) || "[]");
+      const raw = localStorage.getItem(KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
     }catch{
       return [];
     }
   }
 
-  function save(list){
-    localStorage.setItem(KEY, JSON.stringify(list));
+  function setSessions(arr){
+    localStorage.setItem(KEY, JSON.stringify(arr));
   }
 
-  function add(item){
-    const all = load();
-    all.unshift(item);
-    save(all.slice(0,50));
+  function addSession(s){
+    const arr = getSessions();
+    arr.unshift({
+      id: `S-${Date.now()}`,
+      ...s
+    });
+    // keep up to 80 sessions
+    if(arr.length > 80) arr.length = 80;
+    setSessions(arr);
+    return arr[0];
   }
 
-  function wipe(){
+  function clear(){
     localStorage.removeItem(KEY);
   }
 
-  return { load, add, wipe };
+  return { getSessions, addSession, clear };
 }
