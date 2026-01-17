@@ -1,112 +1,0 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <meta name="theme-color" content="#070815"/>
-  <title>SpeakXR X-Stage PRO</title>
-  <meta name="description" content="SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive Dashboard + Jury Board"/>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="./assets/css/styles.css"/>
-
-  <!-- PWA -->
-  <link rel="manifest" href="./assets/manifest.webmanifest"/>
-</head>
-
-<body>
-  <noscript>
-    <div style="padding:14px;margin:14px;border-radius:12px;background:#240;color:#ffd;border:1px solid rgba(255,255,255,.15);font-family:Tahoma,Arial">
-      لازم تفعّل JavaScript عشان المنصة تشتغل (Tabs / Stage / تقارير).
-    </div>
-  </noscript>
-
-  <!-- TOP BAR -->
-  <header class="topbarPro">
-    <div class="wrap topbarIn">
-      <div class="brandPro">
-        <div class="logoPro">SX</div>
-        <div class="brandTxt">
-          <div class="brandTitle">
-            <span>SpeakXR</span>
-            <span class="brandSub">X-Stage</span>
-            <span class="chipP">PRO</span>
-          </div>
-          <div class="brandMeta">WebXR • AR • VR • Voice Engine • Audience Engine</div>
-        </div>
-      </div>
-
-      <nav class="tabs" id="tabs">
-        <button class="tab on" data-route="demo">⚡ Demo</button>
-        <button class="tab" data-route="webxr">🕶️ WebXR</button>
-        <button class="tab" data-route="executive">🏛️ Executive</button>
-        <button class="tab" data-route="settings">⚙️ الإعدادات</button>
-        <button class="tab" data-route="jury">🧑‍⚖️ لوحة التحكم</button>
-        <button class="tab" data-route="analysis">📊 تحليل الأداء</button>
-        <button class="tab" data-route="data">🗂️ بيانات التدريب</button>
-        <button class="tab glow" data-route="stage">🎭 المسرح</button>
-      </nav>
-
-      <div class="actions">
-        <div class="statusPack">
-          <span class="dot" id="dot"></span>
-          <span class="statusTxt" id="status">جاهز</span>
-        </div>
-        <button class="btn ghost" id="cmdBtn">⌘K</button>
-        <button class="btn ghost" id="presentBtn">Presenter</button>
-        <button class="btn ok" id="startAll">ابدأ</button>
-        <button class="btn danger" id="stopAll" disabled>إيقاف</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="wrap proMain">
-
-    <!-- VIEW: DEMO -->
-    <section class="view on" data-view="demo">
-      <!-- (خلي محتوى الديمو عندك كما هو بالكامل) -->
-      <!-- المهم: data-view="demo" موجود -->
-    </section>
-
-    <!-- VIEW: WEBXR -->
-    <section class="view" data-view="webxr">
-      <!-- (خلي محتوى الويبXR عندك كما هو) -->
-    </section>
-
-    <!-- VIEW: EXECUTIVE -->
-    <section class="view" data-view="executive">
-      <!-- (خلي محتوى executive كما هو) -->
-    </section>
-
-    <!-- VIEW: SETTINGS -->
-    <section class="view" data-view="settings">
-      <!-- (خلي محتوى settings كما هو) -->
-    </section>
-
-    <!-- VIEW: JURY -->
-    <section class="view" data-view="jury">
-      <!-- (خلي محتوى jury كما هو) -->
-    </section>
-
-    <!-- VIEW: ANALYSIS -->
-    <section class="view" data-view="analysis">
-      <!-- (خلي محتوى analysis كما هو) -->
-    </section>
-
-    <!-- VIEW: DATA -->
-    <section class="view" data-view="data">
-      <!-- (خلي محتوى data كما هو) -->
-    </section>
-
-    <!-- VIEW: STAGE -->
-    <section class="view" data-view="stage">
-      <!-- (خلي محتوى stage كما هو) -->
-    </section>
-
-  </main>
-
-  <!-- ✅ سكربت واحد فقط (المسار الصحيح) -->
-  <script type="module" src="./assets/js/app.js"></script>
-</body>
-</html>
