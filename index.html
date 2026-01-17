@@ -5,227 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpeakXR X-Stage</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- 1. متغيرات الألوان والتصميم (Theme Setup) --- */
-        :root {
-            --bg-dark: #0b1120;       /* كحلي غامق جداً */
-            --bg-panel: #141e33;      /* لون البنلات */
-            --primary-blue: #2d9cdb;  /* أزرق فاتح للأزرار */
-            --accent-cyan: #56ccf2;   /* سماوي للتدريج */
-            --text-gray: #b0b8c4;     /* رمادي للنصوص الفرعية */
-            --glass: rgba(20, 30, 51, 0.7);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --font-main: 'Cairo', sans-serif;
-        }
-
-        * { box-sizing: border-box; outline: none; }
-
-        body {
-            margin: 0;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 10% 20%, #1a2a44 0%, var(--bg-dark) 60%);
-            color: white;
-            font-family: var(--font-main);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* --- 2. الشريط العلوي (Navigation) --- */
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 30px;
-            background: rgba(11, 17, 32, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 100;
-        }
-
-        .logo-circle {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--primary-blue));
-            border-radius: 50%;
-            display: flex;
-            align-items: center; justify-content: center;
-            font-weight: 900; font-size: 1.2rem;
-        }
-
-        .nav-pills {
-            display: flex;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 5px;
-            border-radius: 30px;
-            border: 1px solid var(--border-color);
-        }
-
-        .nav-item {
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            color: var(--text-gray);
-            font-size: 0.9rem;
-            transition: 0.3s;
-        }
-
-        .nav-item.active, .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        /* --- 3. لوحة التحكم الرئيسية (Dashboard) --- */
-        #dashboard-view {
-            padding: 40px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 1;
-            transition: 0.5s;
-        }
-
-        .hero-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .text-content { max-width: 60%; }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            background: linear-gradient(to right, #fff, #aecaff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .sub-text {
-            color: var(--text-gray);
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        /* كروت الإحصائيات */
-        .stats-grid {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            min-width: 120px;
-        }
-
-        .stat-num { font-size: 2rem; font-weight: bold; display: block; }
-        .stat-label { font-size: 0.8rem; color: var(--text-gray); }
-
-        /* الأزرار الكبيرة */
-        .action-buttons { display: flex; gap: 20px; }
-
-        .btn-primary {
-            background: linear-gradient(90deg, var(--primary-blue), var(--accent-cyan));
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(45, 156, 219, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(45, 156, 219, 0.5); }
-        .btn-primary:active { transform: scale(0.95); }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--text-gray);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.05); }
-
-        /* --- 4. شاشة المسرح (Stage HUD) - مخفية في البداية --- */
-        #stage-view {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 200;
-            flex-direction: column;
-        }
-
-        /* محاكاة الكاميرا */
-        .camera-feed {
-            flex: 1;
-            background: url('https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2070') no-repeat center center/cover;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        
-        /* طبقة HUD فوق الكاميرا */
-        .hud-overlay {
-            background: rgba(0,0,0,0.6);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #0f0;
-            font-family: monospace;
-            width: fit-content;
-        }
-
-        .bottom-controls {
-            padding: 20px;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .mic-btn-large {
-            width: 70px; height: 70px;
-            border-radius: 50%;
-            background: #ff4444;
-            border: 4px solid white;
-            cursor: pointer;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="logo-circle">SX</div>
-            <div style="font-size: 0.9rem; color: #fff;">
-                <strong>SpeakXR</strong> <span style="color:var(--primary-blue)">X-Stage</span><br>
-                <small style="color:gray; font-size:0.7rem">WebXR • Voice Engine</small>
+        <div class="header-left">
+            <div class="demo-badge">⚡ Demo</div>
+            <div class="logo-area">
+                <div class="logo-circle">SX</div>
+                <div class="logo-text">
+                    <strong>SpeakXR</strong> <span class="highlight">X-Stage</span><br>
+                    <small>WebXR • AR • VR • Voice Engine</small>
+                </div>
             </div>
         </div>
 
@@ -234,167 +26,106 @@
             <div class="nav-item">بيئات التدريب</div>
             <div class="nav-item">تحليل الأداء</div>
             <div class="nav-item">لوحة التحكيم</div>
+            <div class="nav-item">الإعدادات</div>
         </nav>
-
-        <div class="btn-secondary" style="padding: 8px 20px; font-size: 0.8rem;">Demo ⚡</div>
     </header>
 
-    <div id="dashboard-view">
-        <div class="hero-section">
-            <div class="text-content">
-                <div style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">● تحكيم لحظي • جمهور تفاعلي</div>
-                <h1>أتقن الخطابة العامة بالذكاء<br>الاصطناعي والواقع الممتد</h1>
-                <p class="sub-text">
-                    هذا ليس "موقع". هذا مسرح تدريبي: AR HUD فوق الكاميرا، جمهور افتراضي يتفاعل، وتحكيم لجنة AI يطلع قراراً قابلاً للتفسير.
+    <main id="dashboard-view">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="badge-pill">● تحكيم لحظي • جمهور تفاعلي • واقع ممتد</div>
+                <h1>أتقن الخطابة العامة بالذكاء<br>الاصطناعي <span class="text-gradient">والواقع الممتد</span></h1>
+                <p class="description">
+                    هذا ليس مجرد "موقع". هذا <strong>مسرح تدريبي</strong>: AR HUD فوق الكاميرا، جمهور افتراضي يتفاعل، وتحكيم لجنة AI يصدر قراراً قابلاً للتفسير.
                 </p>
 
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="enterStage()">
-                        Enter Stage ⚡
-                    </button>
-                    <button class="btn-secondary">
-                        اختر سيناريو 🎬
-                    </button>
+                <div class="action-group">
+                    <button class="btn-glow" onclick="enterStage()">Enter Stage ⚡</button>
+                    <button class="btn-outline">🎥 اختر سيناريو</button>
+                    <button class="btn-text">📥 تحميل تقرير</button>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <div class="stats-grid">
+            <div class="stats-sidebar">
+                <div class="stats-row">
                     <div class="stat-card">
-                        <span class="stat-num">0</span>
-                        <span class="stat-label">جلسات</span>
+                        <h3>0</h3>
+                        <span>جلسات</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-num">--</span>
-                        <span class="stat-label">أفضل درجة</span>
+                        <h3>—</h3>
+                        <span>أفضل درجة</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-num">-</span>
-                        <span class="stat-label">المستوى</span>
+                        <h3>—</h3>
+                        <span>المستوى</span>
                     </div>
                 </div>
                 
-                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px dashed var(--text-gray);">
-                    <strong style="color:white">Ready for Hackathon</strong><br>
-                    <small style="color:gray">عرض رسمي • تقرير • جلسات محفوظة</small>
+                <div class="info-box">
+                    <strong>Ready for Hackathon</strong>
+                    <p>عرض رسمي • تقرير • جلسات محفوظة</p>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: 50px; background: var(--bg-panel); padding: 20px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-primary" style="padding: 10px 20px; font-size: 0.9rem;">📷 تشغيل الكاميرا</button>
-                <button class="btn-secondary" style="padding: 10px 20px; font-size: 0.9rem;">🧪 تشغيل محاكاة</button>
-            </div>
-            <div style="text-align: left;">
-                <strong style="display: block;">XR Stage 🎭</strong>
-                <small style="color:gray">مسرح سينمائي + AR HUD</small>
-            </div>
-        </div>
-    </div>
-
-    <div id="stage-view">
-        <div class="camera-feed">
-            <div style="display: flex; justify-content: space-between;">
-                <div class="hud-overlay">
-                    <div>MODE: LIVE</div>
-                    <div>REC: <span id="timer">00:00</span></div>
-                </div>
-                <div class="hud-overlay" style="text-align: center;">
-                    <div style="font-size: 2rem;" id="mood-emoji">🙂</div>
-                    <small>مزاج الجمهور</small>
+        <div class="bottom-panel">
+            <div class="panel-left">
+                <button class="btn-blue-solid">📷 تشغيل الكاميرا</button>
+                <button class="btn-outline-small">🧪 محاكاة</button>
+                <div class="mode-toggles">
+                    <span>VR</span>
+                    <span>AR</span>
+                    <span class="active">XR</span>
                 </div>
             </div>
-
-            <div style="text-align: center; margin-top: auto; margin-bottom: 20px;">
-                <h2 id="live-caption" style="text-shadow: 0 2px 4px black; background: rgba(0,0,0,0.5); display: inline-block; padding: 10px;">
-                    ابدأ الحديث...
-                </h2>
+            <div class="panel-right">
+                <h3>XR Stage 🎭</h3>
+                <span>مسرح سينمائي + AR HUD + تحكيم لحظي</span>
             </div>
         </div>
+    </main>
 
-        <div class="bottom-controls">
-            <button class="btn-secondary" onclick="exitStage()">خروج</button>
-            <div class="mic-btn-large" onclick="toggleMic()"></div>
-            <button class="btn-secondary">تحكيم فوري</button>
+    <section id="stage-view">
+        <div class="camera-simulation">
+            <div class="hud-top">
+                <div class="hud-box">
+                    <span class="hud-label">WPM</span>
+                    <span class="hud-value" id="hud-wpm">--</span>
+                </div>
+                <div class="hud-box center-box">
+                    <span class="hud-label">COACH</span>
+                    <span class="hud-msg" id="coach-msg">اضغط Demo... وخلك جاهز للجمهور 😄</span>
+                </div>
+                <div class="hud-box">
+                    <span class="hud-label">MODE</span>
+                    <span class="hud-value">XR • مؤتمر</span>
+                </div>
+            </div>
+
+            <div class="live-captions" id="live-text"></div>
+
+            <div class="hud-bottom">
+                <div class="hud-stat-col">
+                    <span>Confidence</span>
+                    <div class="progress-bar"><div class="fill" style="width: 80%"></div></div>
+                </div>
+                
+                <div class="recording-controls">
+                    <button class="mic-button" id="mic-btn" onclick="toggleMic()"></button>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+
+                <div class="hud-stat-col">
+                    <span>Audience Mood</span>
+                    <div class="emoji-mood" id="mood-emoji">🙂</div>
+                </div>
+            </div>
+
+            <button class="exit-btn" onclick="exitStage()">✕ خروج</button>
         </div>
-    </div>
+    </section>
 
-    <script>
-        let recognition;
-        let isRecording = false;
-        let timerInt;
-        let seconds = 0;
-
-        // Function to Switch Screens
-        function enterStage() {
-            document.getElementById('dashboard-view').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('stage-view').style.display = 'flex';
-            }, 500);
-        }
-
-        function exitStage() {
-            document.getElementById('stage-view').style.display = 'none';
-            document.getElementById('dashboard-view').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('dashboard-view').style.opacity = '1';
-            }, 50);
-            stopMic();
-        }
-
-        // Voice Logic
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'ar-SA';
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        document.getElementById('live-caption').innerText = event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-            };
-        }
-
-        function toggleMic() {
-            if(!isRecording) {
-                recognition.start();
-                isRecording = true;
-                startTimer();
-                document.querySelector('.mic-btn-large').style.background = '#00ff88'; // Green when active
-            } else {
-                stopMic();
-            }
-        }
-
-        function stopMic() {
-            recognition.stop();
-            isRecording = false;
-            stopTimer();
-            document.querySelector('.mic-btn-large').style.background = '#ff4444';
-        }
-
-        function startTimer() {
-            timerInt = setInterval(() => {
-                seconds++;
-                let mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-                let secs = (seconds % 60).toString().padStart(2, '0');
-                document.getElementById('timer').innerText = `${mins}:${secs}`;
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInt);
-            seconds = 0;
-            document.getElementById('timer').innerText = "00:00";
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
