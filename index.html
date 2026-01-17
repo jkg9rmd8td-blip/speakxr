@@ -501,7 +501,21 @@
     <div class="ring" id="ring"></div>
     <div class="label" id="radialLabel">XR Menu<br/>اختصار سريع</div>
   </div>
-
+<!-- XR Radial Menu (Right-click / Long-press) -->
+<div class="xrMenuBack" id="xrMenuBack" aria-hidden="true">
+  <div class="xrMenu" id="xrMenu" role="dialog" aria-label="XR Menu">
+    <div class="xrRing" id="xrRing">
+      <button class="xrItem" data-action="start" title="Start">▶</button>
+      <button class="xrItem" data-action="stop" title="Stop">■</button>
+      <button class="xrItem" data-action="tele" title="Teleprompter">📝</button>
+      <button class="xrItem" data-action="aud" title="Audience">👥</button>
+      <button class="xrItem" data-action="hud" title="HUD">🧿</button>
+      <button class="xrItem" data-action="mirror" title="Mirror">🪞</button>
+      <button class="xrItem" data-action="save" title="Save">💾</button>
+    </div>
+    <div class="xrLabel" id="xrLabel">XR Menu<br/>Right-Click / لمس مطوّل</div>
+  </div>
+</div>
   <script type="module" src="./app.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
