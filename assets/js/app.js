@@ -1,327 +1,335 @@
-// app.js — SpeakXR X-Stage PRO (Static / GitHub Pages)
-// Fixes full navigation + robust wiring + QoL improvements
-// - Tabs routing (data-route -> .view[data-view])
-// - URL hash support (#demo #stage ...)
-// - Remember last route (localStorage)
-// - Safe DOM access (no crash if some ids are missing)
-// - Smooth scroll + active tab highlight
-// - Stage resize on view enter
+// assets/js/app.js  (ESM)
+// SpeakXR X-Stage PRO — Router + Wiring + Safe Imports
+// أهم شيء: لأن هذا الملف داخل /assets/js/
+// أي import من /src لازم يكون ../../src/...
 
-import { $, $$, sleep } from "./src/core.js";
+const $  = (q, r=document) => r.querySelector(q);
+const $$ = (q, r=document) => Array.from(r.querySelectorAll(q));
 
-// Optional modules (only if you already have them)
-// If any file not present, comment its import line.
-import { createXRStage } from "./src/xrStage.js";
-import { createAudience } from "./src/audience.js";
-import { createTeleprompter } from "./src/teleprompter.js";
-import { createCoach } from "./src/coach.js";
-import { createStore } from "./src/store.js";
-import { createReport } from "./src/report.js";
-import { createCommands } from "./src/commands.js";
+function setStatus(text, mode="ok"){
+  const status = $("#status");
+  const dot = $("#dot");
+  if (status) status.textContent = text;
 
-// ---------- Safe helpers ----------
-const safe = (v) => (v === null || v === undefined ? null : v);
-const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
-const setTxt = (el, t) => { if (el) el.textContent = t; };
-const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
-
-const ROUTE_KEY = "sx_route_v1";
-
-function normalizeRoute(x) {
-  const r = (x || "").replace("#", "").trim();
-  return r || "demo";
-}
-
-function collectViews() {
-  return $$(".view").map(v => ({
-    el: v,
-    name: v.getAttribute("data-view")
-  }));
-}
-
-function collectTabs() {
-  return $$("#tabs .tab").map(b => ({
-    el: b,
-    route: b.getAttribute("data-route")
-  }));
-}
-
-// ---------- UI map (minimal required for routing) ----------
-const ui = {
-  tabsWrap: $("#tabs"),
-  tabBtns: $$("#tabs .tab"),
-  views: $$(".view"),
-};
-
-// ---- MUST exist check ----
-if (!ui.tabBtns.length || !ui.views.length) {
-  console.warn("⚠️ Tabs or views not found. Check index.html structure.");
-}
-
-// ---------- Core state ----------
-const state = {
-  route: "demo",
-  sessionOn: false,
-};
-
-// ---------- Initialize modules safely ----------
-const store = createStore?.() || null;
-const report = createReport?.(store) || null;
-
-const stage = (() => {
-  const video = $("#cam");
-  const hud = $("#hud");
-  if (!video || !hud || !createXRStage) return null;
-  try { return createXRStage({ video, hud }); } catch(e){ console.error(e); return null; }
-})();
-
-const audience = (() => {
-  const canvas = $("#audience");
-  if (!canvas || !createAudience) return null;
-  try { return createAudience({ canvas }); } catch(e){ console.error(e); return null; }
-})();
-
-const tele = (() => {
-  const overlay = $("#teleOverlay");
-  const overlayText = $("#teleOverlayText");
-  if (!overlay || !overlayText || !createTeleprompter) return null;
-  try { return createTeleprompter({ overlay, overlayText }); } catch(e){ console.error(e); return null; }
-})();
-
-const coach = (() => {
-  if (!createCoach) return null;
-  try { return createCoach(); } catch(e){ console.error(e); return null; }
-})();
-
-// ---------- Status ----------
-const dot = $("#dot");
-const statusEl = $("#status");
-function setStatus(txt, mode="on"){
-  setTxt(statusEl, txt);
-  if(dot){
-    dot.style.background =
-      mode==="bad" ? "rgba(239,68,68,.95)" :
-      mode==="warn"? "rgba(245,158,11,.95)" :
-      "rgba(34,197,94,.95)";
-    dot.style.boxShadow =
-      mode==="bad" ? "0 0 12px rgba(239,68,68,.7)" :
-      mode==="warn"? "0 0 12px rgba(245,158,11,.7)" :
-      "0 0 12px rgba(34,197,94,.7)";
+  if (dot){
+    const map = {
+      ok:   ["rgba(34,197,94,.95)",  "0 0 12px rgba(34,197,94,.65)"],
+      warn: ["rgba(245,158,11,.95)", "0 0 12px rgba(245,158,11,.65)"],
+      bad:  ["rgba(239,68,68,.95)",  "0 0 12px rgba(239,68,68,.65)"],
+    };
+    const [bg, sh] = map[mode] || map.ok;
+    dot.style.background = bg;
+    dot.style.boxShadow = sh;
   }
 }
 
-// ---------- Routing ----------
-function setRoute(route, { pushHash=true, remember=true } = {}){
-  route = normalizeRoute(route);
-  state.route = route;
+function showView(route){
+  // route must match data-view values
+  const views = $$(".view");
+  const tabs  = $$("#tabs .tab");
 
-  // highlight tabs
-  ui.tabBtns.forEach(b=>{
-    b.classList.toggle("on", b.getAttribute("data-route") === route);
-  });
+  views.forEach(v => v.classList.toggle("on", v.dataset.view === route));
+  tabs.forEach(t => t.classList.toggle("on", t.dataset.route === route));
 
-  // show view
-  ui.views.forEach(v=>{
-    v.classList.toggle("on", v.getAttribute("data-view") === route);
-  });
+  // تحديث URL بدون إعادة تحميل (حلوة للـ GitHub Pages)
+  try {
+    const u = new URL(window.location.href);
+    u.hash = route ? `#${route}` : "";
+    history.replaceState({}, "", u);
+  } catch {}
 
-  // update url hash
-  if(pushHash){
-    // avoid scroll jump by using replaceState
-    history.replaceState(null, "", `#${route}`);
-  }
-
-  // remember
-  if(remember){
-    try{ localStorage.setItem(ROUTE_KEY, route); }catch{}
-  }
-
-  // on-enter view hooks
-  if(route === "stage"){
-    // Ensure canvases correct size
-    if(stage?.resize) stage.resize();
-    if(audience?.resize) audience.resize();
-    // scroll into stage smoothly
-    $("#stageWrap")?.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
-
-  if(route === "analysis"){
-    // make sure timeline canvas drawn if you have it
-    $("#timeline")?.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
+  setStatus(`تم فتح: ${route}`, "ok");
 }
 
-// Tab clicks
-on(ui.tabsWrap, "click", (e)=>{
-  const btn = e.target.closest(".tab");
-  if(!btn) return;
-  const route = btn.getAttribute("data-route");
-  setRoute(route);
-});
-
-// Hash navigation (when user types #stage etc.)
-window.addEventListener("hashchange", ()=>{
-  const r = normalizeRoute(location.hash);
-  setRoute(r, { pushHash:false, remember:true });
-});
-
-// Load initial route: hash > remembered > default
-(function bootRoute(){
-  const fromHash = normalizeRoute(location.hash);
-  let fromStore = "demo";
-  try{ fromStore = normalizeRoute(localStorage.getItem(ROUTE_KEY)); }catch{}
-  const initial = location.hash ? fromHash : fromStore;
-  setRoute(initial, { pushHash:true, remember:true });
-})();
-
-// ---------- Quick buttons navigation (optional, if exist) ----------
-on($("#goStageBtn"), "click", ()=> setRoute("stage"));
-on($("#goStage2"), "click", ()=> setRoute("stage"));
-on($("#goStage3"), "click", ()=> setRoute("stage"));
-on($("#pickScenarioBtn"), "click", ()=>{
-  setRoute("demo");
-  $("#scenarioPanel")?.scrollIntoView({ behavior:"smooth", block:"start" });
-});
-
-// ---------- Stage session wiring (if buttons exist) ----------
-async function startSession(){
-  if(!stage?.ensureStarted) {
-    alert("XR Stage غير جاهز: تأكد أن عناصر #cam و #hud موجودة.");
+function bootRouter(){
+  const tabs = $("#tabs");
+  if (!tabs) {
+    console.warn("tabs nav not found");
     return;
   }
-  try{
-    setStatus("طلب صلاحيات الكاميرا/المايك…", "warn");
-    await stage.ensureStarted();
-    stage.resize?.();
-    audience?.resize?.();
 
-    stage.startSession?.();
-    coach?.reset?.();
+  // Tab Click
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    const route = btn.dataset.route;
+    if (!route) return;
+    showView(route);
+  });
 
-    state.sessionOn = true;
+  // Hash route on load
+  const hash = (location.hash || "").replace("#", "").trim();
+  const initial = hash || "demo";
+  showView(initial);
 
-    setDisabled($("#startSession"), true);
-    setDisabled($("#stopSession"), false);
-    setDisabled($("#startAll"), true);
-    setDisabled($("#stopAll"), false);
+  // Buttons that should navigate
+  const go = (id, route) => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener("click", () => showView(route));
+  };
 
-    setStatus("جلسة شغالة ✅", "on");
-  }catch(err){
-    console.error(err);
-    setStatus("رفض صلاحيات الكاميرا/المايك", "bad");
-    alert("لازم تسمح للكاميرا والمايك.");
+  go("#goStageBtn", "stage");
+  go("#goStage2", "stage");
+  go("#goStage3", "stage");
+
+  const pickScenarioBtn = $("#pickScenarioBtn");
+  if (pickScenarioBtn){
+    pickScenarioBtn.addEventListener("click", () => {
+      showView("demo");
+      $("#scenarioPanel")?.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+  }
+
+  // Scenario cards
+  $$(".scPro").forEach(btn => {
+    btn.addEventListener("click", () => {
+      // هنا فقط تنقل للمسرح — تقدر تربط env/scenario لاحقًا
+      showView("stage");
+      setStatus(`سيناريو: ${btn.dataset.sc || "—"} • بيئة: ${btn.dataset.env || "—"}`, "ok");
+    });
+  });
+
+  // Presenter mode
+  const presentBtn = $("#presentBtn");
+  if (presentBtn){
+    presentBtn.addEventListener("click", () => {
+      document.body.classList.toggle("presenter");
+      setStatus(document.body.classList.contains("presenter") ? "Presenter: ON" : "Presenter: OFF", "ok");
+    });
   }
 }
 
-function stopSession(){
-  stage?.stopSession?.();
-  state.sessionOn = false;
+async function safeImportModules(){
+  // نحاول استيراد الموديولات من /src بالمسار الصحيح
+  // لو فشل، ما يوقف الموقع: التنقل يظل شغال
+  const result = { ok:false };
 
-  setDisabled($("#startSession"), false);
-  setDisabled($("#stopSession"), true);
-  setDisabled($("#startAll"), false);
-  setDisabled($("#stopAll"), true);
+  try {
+    const core = await import("../../src/core.js");
+    // إذا تحب تستخدمه هنا لاحقًا
+    result.core = core;
 
-  setStatus("تم الإيقاف ■", "warn");
+    // باقي الموديولات (اختياري)
+    const [
+      xrStage,
+      teleprompter,
+      audience,
+      coach,
+      report,
+      store,
+      commands
+    ] = await Promise.all([
+      import("../../src/xrStage.js"),
+      import("../../src/teleprompter.js"),
+      import("../../src/audience.js"),
+      import("../../src/coach.js"),
+      import("../../src/report.js"),
+      import("../../src/store.js"),
+      import("../../src/commands.js"),
+    ]);
+
+    result.xrStage = xrStage;
+    result.teleprompter = teleprompter;
+    result.audience = audience;
+    result.coach = coach;
+    result.report = report;
+    result.store = store;
+    result.commands = commands;
+
+    result.ok = true;
+    setStatus("Modules: OK ✅", "ok");
+  } catch (err) {
+    console.error("Module import failed:", err);
+    setStatus("Modules: Failed (check /src paths)", "warn");
+
+    // تشخيص سريع واضح للمستخدم
+    const msg =
+      "فشل تحميل ملفات /src.\n\n" +
+      "تأكد أن الهيكلة:\n" +
+      "  /src/core.js\n" +
+      "  /src/xrStage.js\n" +
+      "  ...\n\n" +
+      "وأنها مرفوعة بنفس أسماء الملفات تمامًا.\n\n" +
+      "سبب شائع: اختلاف حرف كبير/صغير (case) على GitHub Pages.";
+    console.warn(msg);
+  }
+
+  return result;
 }
 
-on($("#startSession"), "click", startSession);
-on($("#stopSession"), "click", stopSession);
-on($("#startAll"), "click", startSession);
-on($("#stopAll"), "click", ()=>{
-  tele?.off?.();
-  stopSession();
-  stage?.stopAll?.();
-  setStatus("تم إيقاف الكل", "warn");
-});
+function wireStageBasics(mods){
+  // لو الموديولات جاهزة: نفعل أزرار المسرح الأساسية (كاميرا/جلسة…)
+  if (!mods.ok) return;
 
-// ---------- Tele controls ----------
-on($("#toggleTele"), "click", ()=>{
-  tele?.toggle?.();
-  setStatus(tele?.isOn?.() ? "Teleprompter: ON" : "Teleprompter: OFF", "on");
-});
-on($("#teleText"), "input", (e)=> tele?.setText?.(e.target.value));
-on($("#teleSpeed"), "input", (e)=> tele?.setSpeed?.(+e.target.value));
-on($("#teleSize"), "input", (e)=> tele?.setSize?.(+e.target.value));
+  // توقع أسماء exports حسب اللي بنيناه سابقًا:
+  // createXRStage, createTeleprompter, createAudience, createCoach, createStore, createReport, createCommands
+  const video = $("#cam");
+  const hud = $("#hud");
+  const audCanvas = $("#audience");
 
-// ---------- HUD/Audience/Mirror toggles ----------
-on($("#toggleHUD"), "click", ()=>{
-  if(!stage?.setHUD) return;
-  stage._hudOn = !stage._hudOn;
-  stage.setHUD(stage._hudOn);
-  setStatus(stage._hudOn ? "HUD: ON" : "HUD: OFF", "on");
-});
-on($("#toggleAudience"), "click", ()=>{
-  if(!audience?.setEnabled) return;
-  audience._on = !audience._on;
-  audience.setEnabled(audience._on);
-  setStatus(audience._on ? "Audience: ON" : "Audience: OFF", "on");
-});
-on($("#toggleMirror"), "click", ()=>{
-  if(!stage?.setMirror) return;
-  stage._mir = !stage._mir;
-  stage.setMirror(stage._mir);
-  setStatus(stage._mir ? "Mirror: ON" : "Mirror: OFF", "on");
-});
+  const teleOverlay = $("#teleOverlay");
+  const teleOverlayText = $("#teleOverlayText");
+  const teleText = $("#teleText");
+  const teleSpeed = $("#teleSpeed");
+  const teleSize = $("#teleSize");
 
-// ---------- Metrics plumbing (if stage emits metrics) ----------
-if(stage?.onMetrics){
-  stage.onMetrics((m)=>{
-    // update demo mini hud if exists
-    const wpmV = $("#wpmV"), enV = $("#enV"), clV = $("#clV"), auV = $("#auV");
-    setTxt(wpmV, m.wpm ?? "—");
-    setTxt(enV, m.energy ?? "—");
-    setTxt(clV, m.clarity ?? "—");
+  const startSession = $("#startSession");
+  const stopSession = $("#stopSession");
+  const startAll = $("#startAll");
+  const stopAll = $("#stopAll");
 
-    // audience tick
-    let auScore = 0;
-    if(audience?.tick){
-      auScore = audience.tick({
-        clarity: m.clarity,
-        energy: m.energy,
-        gateState: m.gateState,
-        pressure: +($("#pressure")?.value ?? 45),
-        audienceSense: +($("#audienceSense")?.value ?? 55),
-      });
+  const toggleMirror = $("#toggleMirror");
+  const toggleAudience = $("#toggleAudience");
+  const toggleTele = $("#toggleTele");
+  const toggleHUD = $("#toggleHUD");
+
+  // Defensive checks
+  if (!video || !hud) return;
+
+  const stage = mods.xrStage.createXRStage({ video, hud });
+  const audience = mods.audience.createAudience({ canvas: audCanvas });
+  const tele = mods.teleprompter.createTeleprompter({ overlay: teleOverlay, overlayText: teleOverlayText });
+  const coach = mods.coach.createCoach();
+  const store = mods.store.createStore();
+  const report = mods.report.createReport(store);
+
+  // defaults
+  stage.setHUD(true);
+  stage.setMirror(false);
+  audience.setEnabled(true);
+
+  tele.setText(teleText?.value || "");
+  tele.setSpeed(Number(teleSpeed?.value || 64));
+  tele.setSize(Number(teleSize?.value || 22));
+
+  // tele input bindings
+  teleText?.addEventListener("input", () => tele.setText(teleText.value));
+  teleSpeed?.addEventListener("input", () => tele.setSpeed(Number(teleSpeed.value)));
+  teleSize?.addEventListener("input", () => tele.setSize(Number(teleSize.value)));
+
+  // toggles
+  toggleMirror?.addEventListener("click", () => {
+    stage.setMirror(!stage.getMirror?.() ? true : !stage.getMirror());
+    setStatus("تم تبديل المرآة", "ok");
+  });
+
+  toggleHUD?.addEventListener("click", () => {
+    stage.setHUD(!stage.getHUD?.() ? true : !stage.getHUD());
+    setStatus("تم تبديل HUD", "ok");
+  });
+
+  toggleAudience?.addEventListener("click", () => {
+    audience.setEnabled(!audience.isEnabled?.() ? true : !audience.isEnabled());
+    setStatus("تم تبديل الجمهور", "ok");
+  });
+
+  toggleTele?.addEventListener("click", () => {
+    tele.toggle();
+    setStatus(tele.isOn() ? "Tele: ON" : "Tele: OFF", "ok");
+  });
+
+  let sessionOn = false;
+
+  async function start(){
+    if (sessionOn) return;
+    try{
+      setStatus("طلب صلاحيات الكاميرا/المايك…", "warn");
+      await stage.ensureStarted();      // camera+mic permissions
+      stage.resize();
+      audience.resize();
+
+      stage.startSession();
+      coach.reset?.();
+      sessionOn = true;
+
+      startSession && (startSession.disabled = true);
+      stopSession && (stopSession.disabled = false);
+      startAll && (startAll.disabled = true);
+      stopAll && (stopAll.disabled = false);
+
+      setStatus("جلسة شغالة ✅", "ok");
+    }catch(e){
+      console.error(e);
+      setStatus("فشل تشغيل الكاميرا/المايك", "bad");
+      alert("لازم تسمح للكاميرا والمايك من المتصفح.");
     }
-    setTxt(auV, auScore ? `${auScore}` : "—");
+  }
 
-    // bars if exist
-    const wpmBar = $("#wpmBar"), enBar = $("#enBar"), clBar = $("#clBar"), auBar = $("#auBar");
-    if(wpmBar) wpmBar.style.width = `${Math.max(0, Math.min(100, 100 - Math.abs((m.wpm ?? 140) - 140) * 1.8))}%`;
-    if(enBar) enBar.style.width = `${Math.max(0, Math.min(100, m.energy ?? 0))}%`;
-    if(clBar) clBar.style.width = `${Math.max(0, Math.min(100, m.clarity ?? 0))}%`;
-    if(auBar) auBar.style.width = `${Math.max(0, Math.min(100, auScore ?? 0))}%`;
+  function stop(){
+    if (!sessionOn) return;
+    sessionOn = false;
 
-    // coach line
-    const coachBox = $("#coachBox");
-    if(coachBox && coach?.liveLine){
-      coachBox.textContent = coach.liveLine({
-        mode: "soft",
-        metrics: { ...m, audience: auScore },
-        pressure: +($("#pressure")?.value ?? 45),
-        audienceSense: +($("#audienceSense")?.value ?? 55),
-        scenario: "—",
-        env: "—",
-      });
+    stage.stopSession();
+    stage.stopAll?.();
+
+    startSession && (startSession.disabled = false);
+    stopSession && (stopSession.disabled = true);
+    startAll && (startAll.disabled = false);
+    stopAll && (stopAll.disabled = true);
+
+    setStatus("تم إيقاف الجلسة ■", "warn");
+  }
+
+  startSession?.addEventListener("click", start);
+  stopSession?.addEventListener("click", stop);
+  startAll?.addEventListener("click", start);
+  stopAll?.addEventListener("click", stop);
+
+  // live metrics → update mini HUD + coach box (لو موجود)
+  const wpmV = $("#wpmV"), enV = $("#enV"), clV = $("#clV"), auV = $("#auV");
+  const wpmBar = $("#wpmBar"), enBar = $("#enBar"), clBar = $("#clBar"), auBar = $("#auBar");
+  const coachBox = $("#coachBox");
+
+  stage.onMetrics((m) => {
+    // audience tick (لو عندك نظامه داخل المودول)
+    const audScore = audience.tick?.({ clarity:m.clarity, energy:m.energy }) ?? 0;
+
+    wpmV && (wpmV.textContent = m.wpm ?? "—");
+    enV  && (enV.textContent  = m.energy ?? "—");
+    clV  && (clV.textContent  = m.clarity ?? "—");
+    auV  && (auV.textContent  = audScore ? String(audScore) : "—");
+
+    const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+    const wpmScore = clamp(100 - Math.abs((m.wpm ?? 140) - 140)*1.8, 0, 100);
+
+    wpmBar && (wpmBar.style.width = `${wpmScore}%`);
+    enBar  && (enBar.style.width  = `${clamp(m.energy,0,100)}%`);
+    clBar  && (clBar.style.width  = `${clamp(m.clarity,0,100)}%`);
+    auBar  && (auBar.style.width  = `${clamp(audScore,0,100)}%`);
+
+    if (coachBox){
+      coachBox.textContent = coach.liveLine?.({ metrics:{...m, audience:audScore} }) || "جلسة شغالة…";
     }
   });
+
+  // command palette (اختياري)
+  try{
+    mods.commands.createCommands?.({
+      stage, tele, store, report,
+      setRoute: (r)=>showView(r),
+      startSession: start,
+      stopSession: stop,
+      setStatus,
+      state: {}
+    });
+  }catch(e){
+    // ignore if commands module differs
+  }
+
+  setStatus("Stage Wired ✅", "ok");
 }
 
-// ---------- Commands (⌘K) optional ----------
-try{
-  createCommands?.({
-    stage,
-    tele,
-    store,
-    report,
-    setRoute,
-    startSession,
-    stopSession,
-    setStatus,
-    state,
-  });
-}catch(e){ /* ignore */ }
+(async function boot(){
+  // 1) Router always works
+  bootRouter();
 
-// ---------- Final init ----------
-setStatus("جاهز — التابات شغالة ✅", "on");
+  // 2) Imports (optional). If it fails: site still navigates.
+  const mods = await safeImportModules();
+
+  // 3) If modules ok: wire stage + metrics
+  wireStageBasics(mods);
+
+  // 4) Final status
+  setStatus(mods.ok ? "جاهز — كل شيء مفعل ✅" : "جاهز — التنقل مفعل (modules تحتاج ضبط)", mods.ok ? "ok":"warn");
+})();
