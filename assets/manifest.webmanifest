@@ -1,0 +1,10 @@
+{
+  "name": "SpeakXR",
+  "short_name": "SpeakXR",
+  "start_url": "../index.html",
+  "display": "standalone",
+  "background_color": "#070815",
+  "theme_color": "#070815",
+  "description": "SpeakXR XR Platform — تدريب خطاب وإعلام مع تحليل حي وتلقين وتقارير",
+  "icons": []
+}
