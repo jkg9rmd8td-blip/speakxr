@@ -1,10 +1,22 @@
 {
   "name": "SpeakXR X-Stage PRO",
-  "short_name": "X-Stage",
+  "short_name": "SpeakXR",
   "start_url": "../index.html",
+  "scope": "../",
   "display": "standalone",
   "background_color": "#070815",
   "theme_color": "#070815",
-  "description": "SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive + Jury",
-  "icons": []
+  "description": "SpeakXR X-Stage PRO — WebXR + XR HUD + Voice Engine + Audience + Executive Dashboard + Jury Board",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
