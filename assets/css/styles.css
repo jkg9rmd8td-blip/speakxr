@@ -1,371 +1,699 @@
-/* style.css */
+/* =========================================================
+   SpeakXR X-Stage PRO — style.css (FULL)
+   - Glass UI + Neon accents + RTL
+   - Tabs routing views
+   - Stage: video + HUD + audience + overlays
+   - Executive / Analysis / Jury / Data table
+   - Command Palette injection compatible
+   ========================================================= */
 
-/* 1. المتغيرات والألوان */
-:root {
-    --bg-dark: #020617;
-    --primary: #8b5cf6;       /* بنفسجي */
-    --primary-hover: #7c3aed;
-    --cyan: #22d3ee;          /* سماوي */
-    --red: #ef4444;           /* أحمر للتسجيل */
-    --glass-bg: rgba(15, 23, 42, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-main: #ffffff;
-    --text-muted: #94a3b8;
-    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+/* ---------- Reset / Base ---------- */
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Tajawal", "Cairo", "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(168,85,247,.25), transparent 55%),
+    radial-gradient(900px 560px at 10% 0%, rgba(34,211,238,.18), transparent 55%),
+    radial-gradient(900px 700px at 70% 110%, rgba(59,130,246,.14), transparent 55%),
+    linear-gradient(180deg, #050617, #070a1f 45%, #06081a);
+  color:#fff;
+  overflow-x:hidden;
 }
 
-/* 2. إعدادات الصفحة الأساسية */
-* {
-    box-sizing: border-box;
+/* nice selection */
+::selection{background:rgba(34,211,238,.35)}
+a{color:inherit}
+button, input, textarea{font-family:inherit}
+
+/* ---------- Layout helpers ---------- */
+.wrap{
+  width:min(1240px, calc(100% - 28px));
+  margin:0 auto;
+}
+.proMain{padding:16px 0 60px}
+
+/* ---------- Topbar ---------- */
+.topbarPro{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:rgba(2,4,16,.45);
+  backdrop-filter: blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+.topbarIn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 0;
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    font-family: 'Cairo', sans-serif;
-    overflow: hidden; /* لمنع التمرير لأننا تطبيق شاشة كاملة */
-    height: 100vh;
-    width: 100vw;
+/* Brand */
+.brandPro{display:flex;align-items:center;gap:12px;min-width:260px}
+.logoPro{
+  width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;
+  background: linear-gradient(135deg, rgba(34,211,238,.92), rgba(59,130,246,.88), rgba(168,85,247,.85));
+  box-shadow:0 14px 38px rgba(0,0,0,.45), 0 0 20px rgba(34,211,238,.22);
+  font-weight:900;
+  letter-spacing:.5px;
+}
+.brandTxt{display:flex;flex-direction:column;gap:2px}
+.brandTitle{display:flex;align-items:center;gap:8px;font-weight:900}
+.brandSub{opacity:.92}
+.brandMeta{font-size:12px;color:rgba(255,255,255,.68)}
+.chipP{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.85);
 }
 
-/* 3. الكانفاس (الخلفية ثلاثية الأبعاد) */
-#xr-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1; /* في الخلفية */
-    background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%); /* لون احتياطي */
+/* Tabs */
+.tabs{
+  display:flex;flex-wrap:wrap;gap:8px;
+  justify-content:center;
+  padding:2px 8px;
+  border-radius:16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+}
+.tab{
+  border:0;
+  cursor:pointer;
+  padding:10px 12px;
+  border-radius:14px;
+  color:rgba(255,255,255,.78);
+  background:transparent;
+  font-weight:800;
+  font-size:13px;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, color .12s ease;
+  border:1px solid transparent;
+  white-space:nowrap;
+}
+.tab:hover{
+  transform: translateY(-1px);
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.10);
+  color:#fff;
+}
+.tab.on{
+  color:#071022;
+  background:rgba(34,211,238,.95);
+  border-color:rgba(34,211,238,.95);
+  box-shadow:0 10px 30px rgba(34,211,238,.20);
+}
+.tab.glow{
+  border-color:rgba(168,85,247,.45);
+  background:rgba(168,85,247,.12);
+}
+.tab.glow:hover{border-color:rgba(168,85,247,.70)}
+.tab.glow.on{
+  color:#070815;
+  background:linear-gradient(90deg, rgba(168,85,247,.95), rgba(34,211,238,.92));
+  border-color:transparent;
 }
 
-/* 4. واجهة المستخدم العلوية (HUD) */
-.hud-overlay {
-    position: relative;
-    z-index: 10; /* فوق الكانفاس */
-    height: 100%;
-    width: 100%;
-    pointer-events: none; /* يسمح بالضغط على العناصر ثلاثية الأبعاد خلفه */
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+/* Actions right */
+.actions{display:flex;align-items:center;gap:10px;min-width:240px;justify-content:flex-end}
+.statusPack{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+}
+.dot{
+  width:10px;height:10px;border-radius:999px;
+  background:rgba(34,197,94,.95);
+  box-shadow:0 0 12px rgba(34,197,94,.6);
+}
+.statusTxt{font-size:12px;font-weight:900;color:rgba(255,255,255,.82)}
+
+/* Buttons */
+.btn{
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  border-radius:14px;
+  padding:10px 12px;
+  cursor:pointer;
+  font-weight:900;
+  font-size:13px;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
+  white-space:nowrap;
+}
+.btn:hover{transform: translateY(-1px);border-color:rgba(255,255,255,.20);background:rgba(255,255,255,.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.ghost{background:rgba(255,255,255,.04)}
+.btn.ok{
+  background:rgba(34,197,94,.20);
+  border-color:rgba(34,197,94,.35);
+}
+.btn.ok:hover{background:rgba(34,197,94,.26)}
+.btn.danger{
+  background:rgba(239,68,68,.16);
+  border-color:rgba(239,68,68,.35);
+}
+.btn.danger:hover{background:rgba(239,68,68,.24)}
+.btn.primary{
+  background:linear-gradient(90deg, rgba(34,211,238,.92), rgba(59,130,246,.88));
+  border-color:transparent;
+  color:#071022;
+  box-shadow:0 18px 50px rgba(0,0,0,.35), 0 0 26px rgba(34,211,238,.20);
+}
+.btn.primary:hover{filter:saturate(1.05)}
+
+/* ---------- Views ---------- */
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- Panels / Cards ---------- */
+.panel{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  box-shadow:0 22px 70px rgba(0,0,0,.38);
+}
+.panel.pad{padding:16px}
+.panelHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.panelHead b{font-size:16px}
+.muted{color:rgba(255,255,255,.70);font-size:13px}
+
+/* Hero */
+.heroPro{padding:16px}
+.heroGrid{
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap:14px;
+}
+.heroText{padding:4px 4px 10px}
+.kicker{
+  display:inline-flex;gap:8px;align-items:center;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.78);
+  font-size:12px;font-weight:900;
+}
+.h1{
+  margin:12px 0 10px;
+  line-height:1.15;
+  font-size:38px;
+  letter-spacing:-.6px;
+}
+.grad{
+  background: linear-gradient(90deg, rgba(34,211,238,.95), rgba(59,130,246,.92), rgba(168,85,247,.90));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.p{
+  margin:0 0 12px;
+  line-height:1.9;
+  color:rgba(255,255,255,.78);
+  font-size:14px;
+}
+.heroBtns{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 10px}
+.hintLine{
+  margin-top:10px;
+  font-size:12px;
+  color:rgba(255,255,255,.65);
 }
 
-/* الهيدر العلوي */
-.hud-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 12px 24px;
-    border-radius: 16px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    pointer-events: auto; /* إعادة تفعيل الضغط */
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
+/* KPI cards row */
+.cardsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.kpiCard{
+  padding:12px;
+  border-radius:18px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.12);
+}
+.kpiT{font-size:12px;color:rgba(255,255,255,.70);font-weight:900}
+.kpiV{font-size:28px;font-weight:950;margin-top:6px}
+.kpiS{font-size:12px;color:rgba(255,255,255,.65)}
+
+/* Hero side mini panels */
+.miniPanel{padding:12px}
+.miniPill{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid rgba(34,211,238,.35);
+  background:rgba(34,211,238,.12);
+}
+.miniPill.soft{
+  border-color:rgba(168,85,247,.35);
+  background:rgba(168,85,247,.12);
+}
+.miniGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.miniStat{
+  border-radius:16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  padding:10px;
+}
+.miniStat .t{font-size:11px;color:rgba(255,255,255,.65);font-weight:900}
+.miniStat .v{font-size:22px;font-weight:950;margin-top:6px}
+.bar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.10);margin-top:8px}
+.bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg, rgba(34,211,238,.92), rgba(59,130,246,.90), rgba(168,85,247,.88))}
+.coachBox{
+  margin-top:10px;
+  padding:12px;
+  border-radius:16px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.12);
+  line-height:1.9;
+  color:rgba(255,255,255,.82);
+  font-weight:800;
 }
 
-/* مؤشر البث الحي */
-.live-indicator {
-    color: var(--red);
-    font-weight: 700;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    animation: blink 2s infinite;
+/* mini report box */
+.miniReport{display:flex;flex-direction:column;gap:10px}
+.mr{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 12px;border-radius:16px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+}
+.mr span{color:rgba(255,255,255,.65);font-weight:900;font-size:12px}
+.mr b{font-weight:950}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* ---------- Scenario grid ---------- */
+.scenarioGridPro{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.scPro{
+  text-align:right;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  border-radius:20px;
+  padding:14px;
+  cursor:pointer;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  position:relative;
+  overflow:hidden;
+}
+.scPro:hover{
+  transform: translateY(-2px);
+  border-color:rgba(34,211,238,.25);
+  background:rgba(255,255,255,.07);
+}
+.scPro .ico{font-size:26px}
+.scPro .t{margin-top:10px;font-size:16px;font-weight:950}
+.scPro .s{margin-top:6px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.8}
+.ctaMini{
+  margin-top:10px;
+  display:inline-flex;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.22);
+  font-size:11px;font-weight:900;
+  color:rgba(255,255,255,.78);
+}
+.scPro::before{
+  content:"";
+  position:absolute;
+  inset:-60px;
+  background:radial-gradient(280px 180px at 30% 30%, rgba(34,211,238,.18), transparent 60%),
+             radial-gradient(260px 170px at 70% 70%, rgba(168,85,247,.16), transparent 60%);
+  transform: rotate(12deg);
+  opacity:.8;
+  pointer-events:none;
 }
 
-.live-indicator::before {
-    content: '';
-    display: block;
-    width: 8px;
-    height: 8px;
-    background-color: var(--red);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--red);
+/* ---------- WebXR grid2 ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cardPro{
+  padding:14px;
+  border-radius:20px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+}
+.cardPro .t{font-size:12px;color:rgba(255,255,255,.70);font-weight:900}
+.cardPro .v{font-size:22px;font-weight:950;margin-top:8px}
+.cardPro .s{font-size:13px;color:rgba(255,255,255,.68);margin-top:6px;line-height:1.8}
+
+/* ---------- Executive grid ---------- */
+.execGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.execCard{
+  padding:14px;border-radius:20px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.12);
+}
+.execCard .t{font-size:12px;color:rgba(255,255,255,.70);font-weight:900}
+.execCard .v{font-size:26px;font-weight:950;margin-top:10px}
+.execCard .s{font-size:12px;color:rgba(255,255,255,.65);margin-top:6px}
+.execText{
+  white-space:pre-wrap;
+  line-height:1.9;
+  color:rgba(255,255,255,.82);
+  font-weight:800;
 }
 
-/* الشعار */
-.logo {
-    font-size: 1.5rem;
-    font-weight: 900;
-    letter-spacing: -0.5px;
+/* ---------- Settings ---------- */
+.settingsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.setCard{
+  padding:14px;border-radius:20px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+}
+.setCard .t{font-weight:950;margin-bottom:8px}
+.setCard .s{color:rgba(255,255,255,.65);font-size:13px;margin-top:8px;line-height:1.8}
+
+/* Seg2 */
+.seg2{
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:8px;
+  border-radius:16px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.12);
+}
+.seg2 button{
+  flex:1;
+  min-width:90px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.80);
+  border-radius:14px;
+  padding:10px 10px;
+  font-weight:950;
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.seg2 button:hover{transform: translateY(-1px);border-color:rgba(255,255,255,.18)}
+.seg2 button.on{
+  color:#070815;
+  background:linear-gradient(90deg, rgba(34,211,238,.95), rgba(168,85,247,.85));
+  border-color:transparent;
 }
 
-.text-gradient {
-    background: linear-gradient(to right, var(--cyan), var(--primary));
-    -webkit-background-clip: text;
-    color: transparent;
+/* Sliders */
+input[type="range"]{
+  width:100%;
+  accent-color: rgba(34,211,238,.95);
+}
+textarea{
+  width:100%;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  color:#fff;
+  padding:12px;
+  min-height:120px;
+  outline:none;
+  line-height:1.8;
+}
+textarea:focus{border-color:rgba(34,211,238,.35)}
+
+/* Toggle */
+.toggle{display:inline-flex;align-items:center;gap:10px}
+.toggle input{display:none}
+.toggle span{
+  width:56px;height:32px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  position:relative;
+  cursor:pointer;
+}
+.toggle span::after{
+  content:"";
+  width:26px;height:26px;border-radius:999px;
+  position:absolute;top:2px;right:2px;
+  background:rgba(255,255,255,.85);
+  transition: transform .15s ease, background .15s ease;
+}
+.toggle input:checked + span{
+  background:rgba(34,211,238,.18);
+  border-color:rgba(34,211,238,.35);
+}
+.toggle input:checked + span::after{
+  transform: translateX(-24px);
+  background:rgba(34,211,238,.95);
 }
 
-/* المؤقت */
-.clock {
-    font-family: monospace;
-    font-size: 1.2rem;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 4px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
+/* ---------- Jury ---------- */
+.juryGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.juryCard{
+  padding:14px;border-radius:20px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+}
+.juryCard.big{grid-column:2 / span 1}
+.jt{font-weight:950;margin-bottom:10px}
+.jlist{margin:0;padding:0 18px 0 0;display:flex;flex-wrap:wrap;gap:10px}
+.jlist li{
+  list-style: none;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  font-size:12px;font-weight:900;color:rgba(255,255,255,.78);
+}
+.jnotes{min-height:120px}
+.finalScore{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.fsV{font-size:42px;font-weight:1000;letter-spacing:-.5px}
+.fsBar{height:10px;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
+.fsBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg, rgba(34,211,238,.95), rgba(59,130,246,.90), rgba(168,85,247,.88))}
+.decision{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.22);
+  color:rgba(255,255,255,.85);
+  font-weight:900;
+  line-height:1.9;
 }
 
-/* 5. الملقن الآلي (Teleprompter) */
-#teleprompter-container {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    max-width: 800px;
-    text-align: center;
-    pointer-events: none;
-    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-    height: 300px;
-    overflow: hidden;
+/* ---------- Analysis ---------- */
+.analysisBox{display:flex;flex-direction:column;gap:12px}
+.aTop{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.aCard{
+  padding:14px;border-radius:20px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.12);
+}
+.aCard .t{font-size:12px;color:rgba(255,255,255,.70);font-weight:900}
+.aCard .v{font-size:28px;font-weight:950;margin-top:8px}
+.aCard .s{font-size:12px;color:rgba(255,255,255,.65);margin-top:6px;line-height:1.7}
+.timelineWrap{
+  border-radius:20px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+}
+#timeline{
+  width:100%;
+  height:220px;
+  display:block;
+}
+.legend{
+  display:flex;gap:14px;flex-wrap:wrap;
+  padding:10px 12px;
+  border-top:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.03);
+}
+.legend span{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.72);font-weight:900;font-size:12px}
+.lg{width:10px;height:10px;border-radius:999px;display:inline-block}
+.legend .c1{background:rgba(34,211,238,.95)}
+.legend .c2{background:rgba(56,189,248,.95)}
+.legend .c3{background:rgba(99,102,241,.95)}
+
+/* ---------- Data table ---------- */
+.tableWrap{
+  border-radius:20px;
+  overflow:auto;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+}
+.tbl{
+  width:100%;
+  border-collapse:collapse;
+  min-width:720px;
+}
+.tbl th,.tbl td{
+  padding:12px 10px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  text-align:right;
+  vertical-align:top;
+}
+.tbl th{
+  font-size:12px;
+  color:rgba(255,255,255,.72);
+  font-weight:950;
+  background:rgba(255,255,255,.03);
+  position:sticky;top:0;
 }
 
-#teleprompter-text {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    line-height: 1.6;
-    transition: transform 0.1s linear;
+/* ---------- Stage ---------- */
+.stagePro{padding:16px}
+.stageWrap{
+  position:relative;
+  border-radius:22px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  height: min(64vh, 560px);
+  min-height:380px;
+}
+#cam{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  transform: scaleX(-1); /* user cam mirror default */
+  filter: contrast(1.02) saturate(1.06);
+}
+#hud, #audience{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+}
+#hud{pointer-events:none}
+#audience{pointer-events:none;mix-blend-mode:screen;opacity:.95}
+
+/* Tele overlay */
+.teleOverlay{
+  position:absolute;
+  inset:0;
+  display:none;
+  padding:18px 22px;
+  pointer-events:none;
+}
+.teleOverlay.on{display:block}
+#teleOverlayText{
+  position:absolute;
+  left:0; right:0;
+  top:62%;
+  transform: translateY(0px);
+  text-align:center;
+  padding:0 12%;
+  line-height:1.9;
+  color:rgba(255,255,255,.92);
+  text-shadow: 0 8px 30px rgba(0,0,0,.55);
+  font-weight:900;
+}
+.teleOverlay .hint{
+  position:absolute;
+  top:14px; right:14px;
+  padding:8px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.25);
+  font-weight:900;
+  font-size:12px;
+  color:rgba(255,255,255,.78);
 }
 
-/* 6. تنبيهات المدرب الذكي */
-.coach-bubble {
-    position: absolute;
-    top: 100px;
-    right: 20px;
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px solid var(--primary);
-    padding: 15px 25px;
-    border-radius: 12px 12px 0 12px;
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-    animation: slideIn 0.5s ease-out;
-    max-width: 300px;
-    pointer-events: auto;
+/* Stage controls */
+.controls{
+  position:absolute;
+  left:12px; right:12px;
+  bottom:12px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+}
+.controls .btn{
+  backdrop-filter: blur(10px);
+  background:rgba(0,0,0,.22);
+}
+.controls .btn.primary{background:linear-gradient(90deg, rgba(34,211,238,.92), rgba(59,130,246,.88));color:#071022}
+.controls .btn.danger{background:rgba(239,68,68,.18);color:#fff}
+
+/* Teleprompter panel below */
+#teleText{min-height:140px}
+.miniControls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-top:10px;
+}
+.miniControls label{
+  font-weight:950;
+  color:rgba(255,255,255,.75);
+  font-size:12px;
+}
+.miniControls input[type="range"]{flex:1;min-width:160px}
+
+/* ---------- Presenter mode ---------- */
+body.presenter .topbarPro{
+  background:rgba(2,4,16,.62);
+}
+body.presenter .wrap{width:min(1400px, calc(100% - 18px))}
+body.presenter .panel{border-color:rgba(255,255,255,.16)}
+body.presenter .h1{font-size:42px}
+
+/* ---------- Executive mode (optional) ---------- */
+body.exec .topbarPro{border-bottom-color:rgba(34,211,238,.22)}
+
+/* ---------- Responsiveness ---------- */
+@media (max-width: 1100px){
+  .heroGrid{grid-template-columns:1fr}
+  .brandPro{min-width:auto}
+  .actions{min-width:auto}
+  .cardsRow{grid-template-columns:repeat(3,1fr)}
+  .scenarioGridPro{grid-template-columns:repeat(2,1fr)}
+  .execGrid{grid-template-columns:repeat(2,1fr)}
+  .juryGrid{grid-template-columns:repeat(2,1fr)}
+  .juryCard.big{grid-column:auto}
+  .settingsGrid{grid-template-columns:1fr}
+}
+@media (max-width: 620px){
+  .tabs{justify-content:flex-start;overflow:auto}
+  .tab{font-size:12px;padding:9px 10px}
+  .h1{font-size:30px}
+  .cardsRow{grid-template-columns:1fr}
+  .scenarioGridPro{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .execGrid{grid-template-columns:1fr}
+  .juryGrid{grid-template-columns:1fr}
+  .aTop{grid-template-columns:1fr}
+  .stageWrap{height: 62vh; min-height:360px}
+  #teleOverlayText{padding:0 8%}
 }
 
-.coach-bubble i {
-    font-size: 1.5rem;
-    color: var(--cyan);
+/* ---------- Tiny polish ---------- */
+hr{border:0;border-top:1px solid rgba(255,255,255,.10);margin:14px 0}
+code,kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+kbd{
+  padding:3px 7px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  font-weight:900;font-size:12px
 }
 
-/* 7. عداد الجمهور */
-.audience-meter {
-    position: absolute;
-    top: 100px;
-    left: 20px;
-    background: var(--glass-bg);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(10px);
-    width: 200px;
-    pointer-events: auto;
-}
+/* ---------- Compatibility: command palette injected css already, but keep safe ---------- */
+.cpBackPro{direction:rtl}
 
-.audience-meter .label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    display: block;
-    margin-bottom: 8px;
-}
-
-.bar-container {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--red), var(--cyan));
-    width: 50%;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 10px var(--cyan);
-}
-
-.emoji-float {
-    position: absolute;
-    right: -10px;
-    top: -10px;
-    font-size: 2rem;
-    animation: bounce 2s infinite;
-}
-
-/* 8. شريط التحكم السفلي (Dock) */
-.controls-dock {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-    display: flex;
-    gap: 16px;
-    background: rgba(2, 6, 23, 0.8);
-    backdrop-filter: blur(16px);
-    padding: 12px 20px;
-    border-radius: 24px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    pointer-events: auto;
-}
-
-.dock-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.05);
-    color: var(--text-main);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dock-btn:hover {
-    background: rgba(255,255,255,0.15);
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.dock-btn:active {
-    transform: translateY(-2px);
-}
-
-/* الزر الرئيسي (ابدأ) */
-.dock-btn.primary {
-    width: auto;
-    padding: 0 32px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--primary), #6d28d9);
-    font-weight: 700;
-    border: none;
-    box-shadow: var(--shadow-glow);
-}
-
-.dock-btn.primary:hover {
-    background: linear-gradient(135deg, #9333ea, #7c3aed);
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
-}
-
-/* 9. نافذة التقرير (Modal) */
-dialog {
-    padding: 0;
-    border: none;
-    background: transparent;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* خلفية التقرير المعتمة */
-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-}
-
-.report-content {
-    background: #0f172a;
-    width: 500px;
-    padding: 40px;
-    border-radius: 24px;
-    border: 1px solid var(--primary);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-/* تأثير خط المسح الضوئي في التقرير */
-.report-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: var(--cyan);
-    box-shadow: 0 0 20px var(--cyan);
-    animation: scan 2s infinite linear;
-}
-
-.report-content h2 {
-    color: var(--cyan);
-    margin-bottom: 20px;
-}
-
-#report-details p {
-    font-size: 1.1rem;
-    margin: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 10px;
-}
-
-#btn-close-report {
-    margin-top: 20px;
-    padding: 10px 30px;
-    background: transparent;
-    border: 1px solid var(--text-muted);
-    color: var(--text-muted);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-#btn-close-report:hover {
-    border-color: white;
-    color: white;
-}
-
-/* 10. أدوات مساعدة و أنيميشن */
-.hidden {
-    display: none !important;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes slideIn {
-    from { transform: translateX(50px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-@keyframes scan {
-    0% { top: 0%; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+/* ---------- Optional: reduce motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;scroll-behavior:auto}
 }
