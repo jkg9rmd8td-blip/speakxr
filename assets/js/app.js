@@ -1,4 +1,4 @@
-import { $, $$, clamp, fmtTime, downloadText, downloadJSON } from "./src/core.js";
+import { $, $$, clamp, fmtTime } from "./src/core.js";
 import { createXRStage } from "./src/xrStage.js";
 import { createTeleprompter } from "./src/teleprompter.js";
 import { createAudience } from "./src/audience.js";
@@ -108,23 +108,30 @@ ui.scenarioSeg.addEventListener("click",(e)=>{
   state.scenario = b.dataset.sc;
   setSegOn(ui.scenarioSeg, "data-sc", state.scenario);
   stage.setScenario(state.scenario);
+  ui.scenarioV.textContent = state.scenario;
+  setStatus(`Scenario: ${state.scenario}`, "on");
 });
+
 ui.envSeg.addEventListener("click",(e)=>{
   const b = e.target.closest("button"); if(!b) return;
   state.env = b.dataset.env;
   setSegOn(ui.envSeg, "data-env", state.env);
   stage.setEnv(state.env);
+  setStatus(`Env: ${state.env}`, "on");
 });
 
-// Scenario cards (grid)
+// Scenario cards
 $$(".scCard").forEach(card=>{
   card.addEventListener("click", ()=>{
     state.scenario = card.dataset.sc || state.scenario;
     state.env = card.dataset.env || state.env;
+
     setSegOn(ui.scenarioSeg, "data-sc", state.scenario);
     setSegOn(ui.envSeg, "data-env", state.env);
+
     stage.setScenario(state.scenario);
     stage.setEnv(state.env);
+
     location.hash = "#xr";
     setStatus(`تم اختيار: ${state.scenario} • ${state.env}`, "on");
   });
@@ -134,28 +141,31 @@ $$(".scCard").forEach(card=>{
 ui.teleSpeed.addEventListener("input", ()=> tele.setSpeed(+ui.teleSpeed.value));
 ui.teleSize.addEventListener("input", ()=> tele.setSize(+ui.teleSize.value));
 ui.teleText.addEventListener("input", ()=> tele.setText(ui.teleText.value));
-ui.teleRun.addEventListener("click", ()=> tele.on());
-ui.telePause.addEventListener("click", ()=> tele.off());
+ui.teleRun.addEventListener("click", ()=> { tele.on(); setStatus("Teleprompter ON", "on"); });
+ui.telePause.addEventListener("click", ()=> { tele.off(); setStatus("Teleprompter OFF", "warn"); });
 
-// Toggle buttons
+// Toggles
 ui.toggleMirror.addEventListener("click", ()=>{
   state.mirror = !state.mirror;
   stage.setMirror(state.mirror);
   setStatus(state.mirror ? "مرآة ON" : "مرآة OFF", "on");
 });
+
 ui.toggleAudience.addEventListener("click", ()=>{
   state.showAudience = !state.showAudience;
   audience.setEnabled(state.showAudience);
-  setStatus(state.showAudience ? "الجمهور ON" : "الجمهور OFF", "on");
+  setStatus(state.showAudience ? "الجمهور ON" : "الجمهور OFF", state.showAudience ? "on":"warn");
 });
+
 ui.toggleHUD.addEventListener("click", ()=>{
   state.showHUD = !state.showHUD;
   stage.setHUD(state.showHUD);
-  setStatus(state.showHUD ? "HUD ON" : "HUD OFF", "on");
+  setStatus(state.showHUD ? "HUD ON" : "HUD OFF", state.showHUD ? "on":"warn");
 });
+
 ui.toggleTele.addEventListener("click", ()=>{
   tele.toggle();
-  setStatus(tele.isOn() ? "Teleprompter ON" : "Teleprompter OFF", "on");
+  setStatus(tele.isOn() ? "Teleprompter ON" : "Teleprompter OFF", tele.isOn() ? "on":"warn");
 });
 
 // Session
@@ -167,6 +177,7 @@ ui.startSession.addEventListener("click", async ()=>{
     stage.startSession();
     audience.onSessionStart();
     coach.onSessionStart();
+
     setStatus("جلسة شغالة", "on");
 
     ui.startSession.disabled = true;
@@ -182,9 +193,11 @@ ui.startSession.addEventListener("click", async ()=>{
 
 ui.stopSession.addEventListener("click", ()=>{
   state.sessionOn = false;
+
   stage.stopSession();
   audience.onSessionStop();
   coach.onSessionStop();
+
   setStatus("تم الإيقاف", "warn");
 
   ui.startSession.disabled = false;
@@ -193,7 +206,7 @@ ui.stopSession.addEventListener("click", ()=>{
   ui.stopAll.disabled = true;
 });
 
-// Start/Stop all
+// Start/Stop All
 ui.startAll.addEventListener("click", ()=> ui.startSession.click());
 ui.stopAll.addEventListener("click", ()=>{
   tele.off();
@@ -209,18 +222,19 @@ ui.presentBtn.addEventListener("click", ()=>{
   setStatus(state.presenter ? "Presenter Mode" : "Normal Mode", "on");
 });
 
-// WebXR AR (Optional)
+// WebXR AR (optional)
 ui.startAR.addEventListener("click", async ()=>{
   const ok = await stage.tryWebXR();
-  if(!ok) alert("WebXR AR غير مدعوم هنا. (الواجهة بتشتغل عادي بكاميرا + HUD).");
+  if(!ok) alert("WebXR AR غير مدعوم هنا. (لكن الكاميرا + HUD شغالين).");
 });
 
 // Report actions
 ui.saveNow.addEventListener("click", ()=>{
   const snap = stage.snapshot(state.scenario, state.env);
-  report.save(snap);
-  setStatus("تم حفظ الجلسة", "on");
+  const saved = report.save(snap);
+  setStatus(`تم حفظ الجلسة (${saved.score}/100)`, "on");
 });
+
 ui.exportHTML.addEventListener("click", ()=> report.exportHTML());
 ui.exportJSON.addEventListener("click", ()=> report.exportJSON());
 ui.wipe.addEventListener("click", ()=>{
@@ -230,26 +244,32 @@ ui.wipe.addEventListener("click", ()=>{
   }
 });
 
-// Dock actions (simple)
+// Dock actions
 ui.dock.addEventListener("click",(e)=>{
   const b = e.target.closest("button");
   if(!b) return;
   [...ui.dock.querySelectorAll("button")].forEach(x=>x.classList.remove("on"));
   b.classList.add("on");
-  setStatus(`Mode: ${b.dataset.action}`, "on");
+
+  const act = b.dataset.action;
+  if(act === "stage") location.hash = "#xr";
+  if(act === "tele") { tele.on(); location.hash="#xr"; }
+  if(act === "report") location.hash = "#analyze";
+  if(act === "coach") location.hash = "#analyze";
+  setStatus(`Dock: ${act}`, "on");
 });
 
-// Metrics loop (from stage)
+// Metrics loop
 stage.onMetrics((m)=>{
   coach.tick(m);
   const au = audience.tick(m);
   m.audience = au;
 
-  // WPM score
+  // WPM score: closeness to 140
   m.wpmScore = clamp(100 - Math.abs((m.wpm||140) - 140) * 1.8, 0, 100);
 
   ui.timeV.textContent = fmtTime(m.elapsed);
-  ui.timeBar.style.width = `${(m.elapsed%60)/60*100}%`;
+  ui.timeBar.style.width = `${((m.elapsed%60)/60)*100}%`;
 
   ui.scenarioV.textContent = state.scenario;
 
@@ -267,7 +287,7 @@ stage.onMetrics((m)=>{
   ui.auBar.style.width  = `${clamp(m.audience,0,100)}%`;
 });
 
-// Commands (⌘K)
+// Commands (⌘K + RightClick)
 createCommands({
   ui,
   stage,
@@ -284,4 +304,5 @@ setSegOn(ui.scenarioSeg, "data-sc", state.scenario);
 setSegOn(ui.envSeg, "data-env", state.env);
 stage.setScenario(state.scenario);
 stage.setEnv(state.env);
+ui.scenarioV.textContent = state.scenario;
 setStatus("جاهز — اختر سيناريو وابدأ", "on");
