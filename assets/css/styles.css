@@ -697,3 +697,69 @@ kbd{
 @media (prefers-reduced-motion: reduce){
   *{transition:none!important;scroll-behavior:auto}
 }
+/* =========================
+   XR Radial Menu (PRO)
+========================= */
+.xrMenuBack{
+  position:fixed; inset:0;
+  display:none;
+  place-items:center;
+  background: rgba(0,0,0,.55);
+  z-index:2000;
+}
+.xrMenuBack.on{display:grid}
+.xrMenu{
+  width:min(360px, calc(100% - 26px));
+  display:grid;
+  place-items:center;
+  gap:10px;
+}
+.xrRing{
+  width:220px;height:220px;border-radius:50%;
+  position:relative;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(34,211,238,.18), rgba(0,0,0,.40)),
+    radial-gradient(circle at 70% 70%, rgba(168,85,247,.16), rgba(0,0,0,.35));
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 30px 120px rgba(0,0,0,.60), 0 0 26px rgba(34,211,238,.18);
+}
+.xrItem{
+  position:absolute;
+  width:60px;height:60px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  cursor:pointer;
+  font-size:20px;
+  font-weight:900;
+  display:grid;place-items:center;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.xrItem:hover{
+  transform: translateY(-2px) scale(1.02);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(34,211,238,.22);
+}
+
+/* positions around the ring */
+.xrItem[data-action="start"]{left: calc(50% - 30px); top: -6px;}
+.xrItem[data-action="stop"]{left: calc(50% - 30px); bottom: -6px;}
+.xrItem[data-action="tele"]{right: -6px; top: calc(50% - 30px);}
+.xrItem[data-action="aud"]{left: -6px; top: calc(50% - 30px);}
+.xrItem[data-action="hud"]{right: 18px; top: 18px;}
+.xrItem[data-action="mirror"]{left: 18px; top: 18px;}
+.xrItem[data-action="save"]{left: calc(50% - 30px); top: calc(50% - 30px);}
+
+.xrLabel{
+  text-align:center;
+  font-weight:950;
+  line-height:1.7;
+  color: rgba(255,255,255,.80);
+  font-size:12px;
+}
+
+/* stage micro polish: overlay hint & REC badge look */
+.teleOverlay .hint{
+  box-shadow: 0 16px 60px rgba(0,0,0,.45);
+}
