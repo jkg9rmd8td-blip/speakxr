@@ -1,288 +1,371 @@
-/* =========================================================
-   SpeakXR X-Stage PRO – Cinematic XR UI
-   ========================================================= */
+/* style.css */
 
-/* ---------- ROOT ---------- */
-:root{
-  --bg:#060b16;
-  --bg2:#040812;
-  --panel:rgba(255,255,255,.06);
-  --panelSoft:rgba(255,255,255,.04);
-  --glass:rgba(255,255,255,.08);
-  --stroke:rgba(255,255,255,.12);
-  --strokeSoft:rgba(255,255,255,.08);
-
-  --txt:rgba(255,255,255,.92);
-  --muted:rgba(255,255,255,.62);
-  --dim:rgba(255,255,255,.45);
-
-  --blue:#38bdf8;
-  --blue2:#0ea5e9;
-  --cyan:#22d3ee;
-  --indigo:#6366f1;
-  --green:#22c55e;
-  --yellow:#facc15;
-  --red:#ef4444;
-
-  --radius:18px;
-  --radiusSm:12px;
-  --radiusLg:24px;
-
-  --blur: blur(18px);
-  --shadow: 0 30px 80px rgba(0,0,0,.45);
-  --shadowSoft: 0 18px 50px rgba(0,0,0,.35);
-
-  font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+/* 1. المتغيرات والألوان */
+:root {
+    --bg-dark: #020617;
+    --primary: #8b5cf6;       /* بنفسجي */
+    --primary-hover: #7c3aed;
+    --cyan: #22d3ee;          /* سماوي */
+    --red: #ef4444;           /* أحمر للتسجيل */
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
-/* ---------- RESET ---------- */
-*{box-sizing:border-box}
-html,body{
-  margin:0;padding:0;
-  background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.12), transparent 60%),
-    radial-gradient(800px 400px at 10% 10%, rgba(99,102,241,.10), transparent 60%),
-    var(--bg);
-  color:var(--txt);
-  min-height:100%;
-}
-button,input,textarea{
-  font-family:inherit;
-  color:inherit;
-}
-button{cursor:pointer;border:none;background:none}
-textarea,input{background:none;border:none;outline:none}
-
-/* ---------- UTIL ---------- */
-.wrap{max-width:1400px;margin:auto;padding:0 20px}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-@media(max-width:900px){.grid2{grid-template-columns:1fr}}
-
-.muted{color:var(--muted)}
-.dim{color:var(--dim)}
-.grad{
-  background:linear-gradient(90deg,var(--cyan),var(--blue),var(--indigo));
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
+/* 2. إعدادات الصفحة الأساسية */
+* {
+    box-sizing: border-box;
 }
 
-/* ---------- TOPBAR ---------- */
-.topbarPro{
-  position:sticky;top:0;z-index:100;
-  background:linear-gradient(180deg, rgba(5,10,18,.88), rgba(5,10,18,.65));
-  backdrop-filter:var(--blur);
-  border-bottom:1px solid var(--strokeSoft);
-}
-.topbarIn{
-  display:flex;align-items:center;gap:20px;
-  min-height:74px;
-}
-.brandPro{display:flex;gap:14px;align-items:center}
-.logoPro{
-  width:44px;height:44px;border-radius:14px;
-  display:grid;place-items:center;
-  font-weight:900;
-  background:linear-gradient(135deg,var(--blue),var(--indigo));
-  box-shadow:0 10px 30px rgba(56,189,248,.45);
-}
-.brandTitle{font-weight:900;display:flex;gap:6px;align-items:center}
-.brandSub{opacity:.7}
-.brandMeta{font-size:.8rem;color:var(--muted)}
-.chipP{
-  padding:2px 8px;border-radius:999px;
-  background:rgba(56,189,248,.18);
-  border:1px solid rgba(56,189,248,.45);
-  font-size:.65rem;
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    overflow: hidden; /* لمنع التمرير لأننا تطبيق شاشة كاملة */
+    height: 100vh;
+    width: 100vw;
 }
 
-/* ---------- TABS ---------- */
-.tabs{display:flex;gap:8px;flex:1;overflow:auto}
-.tab{
-  padding:10px 14px;border-radius:999px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--strokeSoft);
-  font-weight:800;font-size:.85rem;
-  white-space:nowrap;
-}
-.tab.on{
-  background:linear-gradient(135deg,rgba(56,189,248,.25),rgba(99,102,241,.22));
-  border-color:rgba(56,189,248,.55);
-}
-.tab.glow{
-  box-shadow:0 0 0 1px rgba(56,189,248,.35),
-             0 0 28px rgba(56,189,248,.35);
+/* 3. الكانفاس (الخلفية ثلاثية الأبعاد) */
+#xr-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* في الخلفية */
+    background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%); /* لون احتياطي */
 }
 
-/* ---------- ACTIONS ---------- */
-.actions{display:flex;gap:10px;align-items:center}
-.statusPack{display:flex;gap:6px;align-items:center}
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--green);
-  box-shadow:0 0 10px rgba(34,197,94,.7);
-}
-.btn{
-  padding:10px 16px;border-radius:14px;
-  font-weight:800;
-  border:1px solid var(--strokeSoft);
-  background:rgba(255,255,255,.05);
-}
-.btn.ok{background:linear-gradient(135deg,var(--green),#16a34a)}
-.btn.primary{
-  background:linear-gradient(135deg,var(--blue),var(--indigo));
-}
-.btn.ghost{background:rgba(255,255,255,.03)}
-.btn.danger{
-  background:linear-gradient(135deg,#ef4444,#b91c1c);
+/* 4. واجهة المستخدم العلوية (HUD) */
+.hud-overlay {
+    position: relative;
+    z-index: 10; /* فوق الكانفاس */
+    height: 100%;
+    width: 100%;
+    pointer-events: none; /* يسمح بالضغط على العناصر ثلاثية الأبعاد خلفه */
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-/* ---------- MAIN ---------- */
-.proMain{padding:30px 0}
-.view{display:none}
-.view.on{display:block}
-
-/* ---------- PANEL ---------- */
-.panel{
-  background:var(--panel);
-  border:1px solid var(--stroke);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-}
-.pad{padding:22px}
-.panelHead{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:16px;font-weight:900;
-}
-
-/* ---------- HERO ---------- */
-.heroPro{padding:28px}
-.heroGrid{display:grid;grid-template-columns:1.3fr .9fr;gap:24px}
-@media(max-width:900px){.heroGrid{grid-template-columns:1fr}}
-.h1{font-size:2.2rem;line-height:1.3;margin:10px 0}
-.kicker{font-size:.9rem;color:var(--cyan)}
-.heroBtns{display:flex;gap:10px;margin:16px 0}
-
-/* ---------- KPI ---------- */
-.cardsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-.kpiCard{
-  padding:14px;border-radius:16px;
-  background:var(--panelSoft);
-  border:1px solid var(--strokeSoft);
-}
-.kpiT{font-size:.75rem;color:var(--muted)}
-.kpiV{font-size:1.6rem;font-weight:900}
-.kpiS{font-size:.7rem;color:var(--dim)}
-
-/* ---------- MINI HUD ---------- */
-.miniPanel{padding:14px}
-.miniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.miniStat{font-size:.75rem}
-.miniStat .v{font-weight:900}
-.bar{
-  height:6px;border-radius:999px;
-  background:rgba(255,255,255,.08);overflow:hidden
-}
-.bar i{
-  display:block;height:100%;width:40%;
-  background:linear-gradient(90deg,var(--cyan),var(--blue));
+/* الهيدر العلوي */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 12px 24px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    pointer-events: auto; /* إعادة تفعيل الضغط */
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
 }
 
-/* ---------- SCENARIOS ---------- */
-.scenarioGridPro{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:16px
-}
-@media(max-width:900px){.scenarioGridPro{grid-template-columns:1fr}}
-.scPro{
-  text-align:right;
-  padding:18px;border-radius:20px;
-  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-  border:1px solid var(--strokeSoft);
-}
-.scPro:hover{border-color:rgba(56,189,248,.55)}
-.scPro .ico{font-size:1.6rem}
-.scPro .t{font-weight:900;margin-top:6px}
-.scPro .s{font-size:.8rem;color:var(--muted)}
-.ctaMini{
-  margin-top:10px;
-  padding:6px 12px;border-radius:999px;
-  font-size:.7rem;
-  display:inline-block;
-  background:rgba(56,189,248,.18);
-  border:1px solid rgba(56,189,248,.45);
+/* مؤشر البث الحي */
+.live-indicator {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: blink 2s infinite;
 }
 
-/* ---------- STAGE ---------- */
-.stagePro{padding:18px}
-.stageWrap{
-  position:relative;
-  height:420px;
-  border-radius:18px;
-  overflow:hidden;
-  background:radial-gradient(circle at center,rgba(56,189,248,.15),#020617 70%);
-  border:1px solid var(--strokeSoft);
-}
-#cam,#hud,#audience{
-  position:absolute;inset:0;width:100%;height:100%;
-}
-.teleOverlay{
-  position:absolute;bottom:18%;left:50%;
-  transform:translateX(-50%);
-  padding:14px 22px;
-  border-radius:12px;
-  background:rgba(0,0,0,.45);
-  backdrop-filter:blur(10px);
-  font-size:1.2rem;
-  max-width:80%;
-  text-align:center;
-}
-.controls{
-  position:absolute;bottom:12px;left:50%;
-  transform:translateX(-50%);
-  display:flex;gap:8px;
+.live-indicator::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--red);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--red);
 }
 
-/* ---------- TABLE ---------- */
-.tbl{width:100%;border-collapse:collapse}
-.tbl th,.tbl td{
-  padding:10px;font-size:.85rem;
-  border-bottom:1px solid var(--strokeSoft)
+/* الشعار */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
 }
 
-/* ---------- COMMAND PALETTE ---------- */
-.cpBack{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;place-items:center;
-}
-.cp{
-  width:420px;max-width:90%;
-  background:var(--panel);
-  border-radius:18px;padding:14px;
-  border:1px solid var(--stroke);
-}
-.cp input{
-  width:100%;padding:12px;
-  border-radius:12px;
-  background:rgba(0,0,0,.35)
+.text-gradient {
+    background: linear-gradient(to right, var(--cyan), var(--primary));
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
-/* ---------- RADIAL MENU ---------- */
-.radial{
-  position:fixed;right:40px;bottom:40px;
-  width:120px;height:120px;
-  border-radius:50%;
-  background:rgba(0,0,0,.55);
-  display:none;place-items:center;
-}
-.radial .ring{
-  width:90px;height:90px;border-radius:50%;
-  border:2px dashed rgba(56,189,248,.55);
+/* المؤقت */
+.clock {
+    font-family: monospace;
+    font-size: 1.2rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
 }
 
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:600px){
-  .h1{font-size:1.6rem}
-  .cardsRow{grid-template-columns:1fr}
+/* 5. الملقن الآلي (Teleprompter) */
+#teleprompter-container {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 800px;
+    text-align: center;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    height: 300px;
+    overflow: hidden;
+}
+
+#teleprompter-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    line-height: 1.6;
+    transition: transform 0.1s linear;
+}
+
+/* 6. تنبيهات المدرب الذكي */
+.coach-bubble {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--primary);
+    padding: 15px 25px;
+    border-radius: 12px 12px 0 12px;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    animation: slideIn 0.5s ease-out;
+    max-width: 300px;
+    pointer-events: auto;
+}
+
+.coach-bubble i {
+    font-size: 1.5rem;
+    color: var(--cyan);
+}
+
+/* 7. عداد الجمهور */
+.audience-meter {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    background: var(--glass-bg);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    width: 200px;
+    pointer-events: auto;
+}
+
+.audience-meter .label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--cyan));
+    width: 50%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--cyan);
+}
+
+.emoji-float {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    font-size: 2rem;
+    animation: bounce 2s infinite;
+}
+
+/* 8. شريط التحكم السفلي (Dock) */
+.controls-dock {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    gap: 16px;
+    background: rgba(2, 6, 23, 0.8);
+    backdrop-filter: blur(16px);
+    padding: 12px 20px;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    pointer-events: auto;
+}
+
+.dock-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-main);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dock-btn:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.dock-btn:active {
+    transform: translateY(-2px);
+}
+
+/* الزر الرئيسي (ابدأ) */
+.dock-btn.primary {
+    width: auto;
+    padding: 0 32px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--primary), #6d28d9);
+    font-weight: 700;
+    border: none;
+    box-shadow: var(--shadow-glow);
+}
+
+.dock-btn.primary:hover {
+    background: linear-gradient(135deg, #9333ea, #7c3aed);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+}
+
+/* 9. نافذة التقرير (Modal) */
+dialog {
+    padding: 0;
+    border: none;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* خلفية التقرير المعتمة */
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.report-content {
+    background: #0f172a;
+    width: 500px;
+    padding: 40px;
+    border-radius: 24px;
+    border: 1px solid var(--primary);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* تأثير خط المسح الضوئي في التقرير */
+.report-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--cyan);
+    box-shadow: 0 0 20px var(--cyan);
+    animation: scan 2s infinite linear;
+}
+
+.report-content h2 {
+    color: var(--cyan);
+    margin-bottom: 20px;
+}
+
+#report-details p {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 10px;
+}
+
+#btn-close-report {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#btn-close-report:hover {
+    border-color: white;
+    color: white;
+}
+
+/* 10. أدوات مساعدة و أنيميشن */
+.hidden {
+    display: none !important;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
 }
