@@ -1,371 +1,174 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SpeakXR — X-Stage PRO</title>
-  <meta name="description" content="SpeakXR منصة تدريب XR/AR/VR + Coach + Judge + Reports (Static Demo)"/>
-  <link rel="stylesheet" href="./style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakXR - منصة التدريب الذكي</title>
+    <style>
+        /* --- 1. الأساسيات والتصميم العام (CSS) --- */
+        :root {
+            --primary: #00ff88;      /* أخضر نيون */
+            --secondary: #00ccff;    /* أزرق نيون */
+            --bg: #0a0a0a;           /* أسود داكن */
+            --glass: rgba(20, 20, 20, 0.85);
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: var(--font-main);
+            margin: 0;
+            overflow: hidden; /* لمنع التمرير أثناء العرض */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- أنيميشن الانتقال بين الصفحات --- */
+        .page-section {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex; /* للتمركز */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 0;
+        }
+
+        .page-section.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        /* --- الصفحة الرئيسية (Home) --- */
+        h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 10px var(--primary); }
+        .grid-scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 80%;
+            max-width: 800px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+
+        /* --- واجهة المسرح (The HUD) --- */
+        #stage-page {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2070'); /* صورة خلفية تحاكي الجمهور */
+            background-size: cover;
+            justify-content: space-between; /* توزيع العناصر فوق وتحت */
+        }
+
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            padding: 20px;
+            background: var(--glass);
+            border-radius: 0 0 20px 20px;
+            border-bottom: 2px solid var(--secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        .hud-stat { text-align: center; }
+        .hud-val { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--primary); font-weight: bold; }
+        .hud-label { font-size: 0.8rem; color: #aaa; }
+
+        .center-stage {
+            text-align: center;
+        }
+
+        .live-feedback {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 20px black;
+            transition: 0.3s;
+        }
+
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            transition: 0.3s;
+            animation: pulse-white 2s infinite;
+        }
+
+        .mic-btn.recording {
+            background: #ff4444;
+            animation: pulse-red 1s infinite;
+            color: white;
+        }
+
+        /* --- شاشة النتائج --- */
+        .score-circle {
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            border: 5px solid var(--primary);
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 0 50px rgba(0,255,136,0.3);
+            margin-bottom: 20px;
+        }
+
+        /* --- أزرار عامة --- */
+        .btn-main {
+            padding: 12px 30px;
+            background: var(--primary);
+            color: black;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+
+        /* Keyframes */
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+        @keyframes pulse-white { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+    </style>
 </head>
-
 <body>
-  <div class="bg"></div>
-  <div class="noise"></div>
 
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">SX</div>
-      <div class="btext">
-        <div class="bname">SpeakXR <span class="chip">X-Stage PRO</span></div>
-        <div class="bsub">WebXR • AR HUD • VR Stage • Voice Engine • Audience</div>
-      </div>
-    </div>
-
-    <nav class="tabs" aria-label="tabs">
-      <button class="tab active" data-view="home">⚡ Demo</button>
-      <button class="tab" data-view="webxr">🧩 WebXR</button>
-      <button class="tab" data-view="executive">🏛 Executive</button>
-      <button class="tab" data-view="coach">🤖 Coach</button>
-      <button class="tab" data-view="judge">🏁 التحكيم</button>
-      <button class="tab" data-view="reports">📊 التقارير</button>
-      <button class="tab" data-view="settings">⚙️ الإعدادات</button>
-    </nav>
-
-    <div class="actions">
-      <button class="btn ghost" id="themeBtn" title="تبديل النمط">🌓</button>
-      <button class="btn primary" id="startBtn">بدء جلسة</button>
-      <button class="btn danger" id="stopBtn" disabled>إيقاف</button>
-    </div>
-  </header>
-
-  <main class="shell">
-
-    <aside class="side">
-      <section class="card">
-        <div class="cardHead">XR Stage Controls</div>
-
-        <div class="grid2">
-          <button class="btn soft" id="toggleHUD">AR HUD</button>
-          <button class="btn soft" id="toggleAudience">Audience</button>
-          <button class="btn soft" id="toggleTele">Teleprompter</button>
-          <button class="btn soft" id="toggleVR">VR Stage</button>
-        </div>
-
-        <div class="sep"></div>
-
-        <div class="mini">
-          <label>حجم HUD</label>
-          <input id="hudSize" type="range" min="12" max="30" value="18" />
-          <label>قوة الجمهور</label>
-          <input id="audPower" type="range" min="0" max="100" value="60" />
-          <label>سرعة التلقين</label>
-          <input id="teleSpeed" type="range" min="10" max="160" value="70" />
-        </div>
-
-        <div class="sep"></div>
-
-        <div class="status">
-          <div class="dot" id="dot"></div>
-          <div>
-            <div class="stTitle" id="stTitle">جاهز</div>
-            <div class="stSub" id="stSub">اختر تبويب… ثم ابدأ جلسة</div>
-          </div>
-        </div>
-
-        <div class="sep"></div>
-
-        <div class="row">
-          <button class="btn soft" id="wowBtn">🔥 Demo WOW</button>
-          <button class="btn ghost" id="resetBtn">↩︎ Reset</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="cardHead">KPIs</div>
-        <div class="kpis">
-          <div class="kpi"><div class="k">WPM</div><div class="v" id="kWpm">0</div></div>
-          <div class="kpi"><div class="k">Confidence</div><div class="v" id="kConf">0%</div></div>
-          <div class="kpi"><div class="k">Filler</div><div class="v" id="kFill">0</div></div>
-          <div class="kpi"><div class="k">Tone</div><div class="v" id="kTone">0</div></div>
-        </div>
-        <div class="sep"></div>
-        <button class="btn primary" id="saveSession">حفظ الجلسة</button>
-      </section>
-
-      <section class="card">
-        <div class="cardHead">ملاحظة سريعة</div>
-        <div class="note">
-          المنصة Static لكن “حسّها حي”:
-          جمهور يتفاعل + HUD + تلقين متحرك + تحكيم + تقارير محفوظة محلياً.
-        </div>
-      </section>
-    </aside>
-
-    <section class="content">
-
-      <!-- HOME -->
-      <section class="view" id="view-home">
-        <div class="hero">
-          <div class="heroText">
-            <h1>أتقن الخطابة <span class="glow">بالذكاء</span> والواقع الممتد</h1>
-            <p>
-              هذه منصة تدريب “جاهزة للتحكيم”:
-              Stage حي، جمهور يتفاعل، AR HUD، تلقين، Coach، وتحكيم يطلع تقرير.
-            </p>
-
-            <div class="heroBtns">
-              <button class="btn primary go" data-go="webxr">Enter Stage ⚡</button>
-              <button class="btn ghost go" data-go="judge">Go Judge</button>
-              <button class="btn soft go" data-go="reports">View Reports</button>
-            </div>
-
-            <div class="chips">
-              <span class="tag">Static</span>
-              <span class="tag">Fast</span>
-              <span class="tag">Hackathon-Ready</span>
-              <span class="tag">No Backend</span>
-            </div>
-          </div>
-
-          <div class="stage">
-            <div class="stageTop">
-              <div class="pill" id="pillMode">MODE: READY</div>
-              <div class="pill" id="pillAud">AUD: 60</div>
-              <div class="pill" id="pillHud">HUD: ON</div>
-              <div class="pill" id="pillTime">00:00</div>
-            </div>
-
-            <div class="stageBody">
-              <div class="lens" id="lens">
-
-                <div class="hud" id="hud">
-                  <div class="hudRow">
-                    <span class="hudTag">LIVE</span>
-                    <span class="hudTag" id="hudHint">نصيحة: ارفع “الافتتاحية” وخفّف التردد 😄</span>
-                  </div>
-
-                  <div class="tele" id="tele" aria-hidden="true">
-                    <div class="teleTitle">التلقين</div>
-                    <div class="teleText" id="teleText">اكتب نصك تحت… ثم “تطبيق النص”.</div>
-                  </div>
-                </div>
-
-                <div class="audience" id="audience" aria-hidden="true">
-                  <div class="audTitle">Audience Engine</div>
-                  <div class="audGrid" id="audGrid"></div>
-                </div>
-
-                <div class="vr" id="vr" aria-hidden="true">
-                  <div class="vrTitle">VR Stage (Concept)</div>
-                  <div class="vrSub">محاكاة قاعة بدون نظارة</div>
-                  <div class="vrStage"></div>
-                </div>
-
-              </div>
-            </div>
-
-            <div class="stageBottom">
-              <input id="scriptInput" class="script" placeholder="✍️ اكتب نص الإلقاء هنا..." />
-              <button class="btn soft" id="applyScript">تطبيق النص</button>
-              <button class="btn soft" id="pokeCoach">نصيحة فورية</button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- WEBXR -->
-      <section class="view" id="view-webxr">
-        <div class="pageHead">
-          <h2>WebXR / XR Stage</h2>
-          <p>كل الأزرار هنا فعّالة + مؤثرات تفاعل + محاكاة كاميرا/AR.</p>
-        </div>
-
-        <div class="cards3">
-          <div class="card big">
-            <div class="cardHead">XR Quick Controls</div>
-            <div class="grid2">
-              <button class="btn soft" id="xrHud">HUD</button>
-              <button class="btn soft" id="xrAud">Audience</button>
-              <button class="btn soft" id="xrTele">Teleprompter</button>
-              <button class="btn soft" id="xrVr">VR</button>
-            </div>
-
-            <div class="sep"></div>
-
-            <div class="bars">
-              <div class="bar"><span>👏 تصفيق</span><i id="bClap"></i></div>
-              <div class="bar"><span>🧠 تركيز</span><i id="bFocus"></i></div>
-              <div class="bar"><span>🌪 تشتت</span><i id="bDis"></i></div>
-            </div>
-
-            <div class="row">
-              <button class="btn ghost" id="randBars">Randomize</button>
-              <button class="btn primary" id="boostAudience">Boost Audience</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">نص التلقين</div>
-            <textarea id="teleArea" class="ta" placeholder="الصق النص هنا…"></textarea>
-            <div class="row">
-              <button class="btn primary" id="teleApply">تطبيق</button>
-              <button class="btn soft" id="teleClear">مسح</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">Debug Console</div>
-            <div class="miniOut" id="miniOut">جاهز…</div>
-            <div class="sep"></div>
-            <button class="btn soft" id="logBtn">Log Status</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- EXECUTIVE -->
-      <section class="view" id="view-executive">
-        <div class="pageHead">
-          <h2>Executive View</h2>
-          <p>واجهة “عرض رسمي” سريعة: قصة المشروع + نقاط التميّز + KPIs.</p>
-        </div>
-
-        <div class="execGrid">
-          <div class="card">
-            <div class="cardHead">القيمة</div>
-            <ul class="list">
-              <li>تدريب مذيع/متحدث داخل Stage حي (XR).</li>
-              <li>تحكيم تلقائي + تقرير PDF-style (نصّي).</li>
-              <li>جمهور يتغير حسب الأداء (Audience Engine).</li>
-              <li>يشتغل على GitHub Pages بدون سيرفر.</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">Demo Script</div>
-            <div class="note">
-              1) Start Session<br/>
-              2) Paste text → Apply<br/>
-              3) Enable Audience + HUD + Tele<br/>
-              4) WOW Demo<br/>
-              5) Judge → Report<br/>
-              6) Save Session → Reports
-            </div>
-            <div class="sep"></div>
-            <button class="btn primary go" data-go="home">رجّعني للستيج</button>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">مؤشرات</div>
-            <div class="bigStat" id="execScore">Score: —</div>
-            <div class="sep"></div>
-            <button class="btn soft" id="execRecalc">Recalc</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- COACH -->
-      <section class="view" id="view-coach">
-        <div class="pageHead">
-          <h2>المدرب الذكي (Mock قوي)</h2>
-          <p>ردود حية + نصائح قصيرة وتطلع “حسّ AI” بدون API.</p>
-        </div>
-
-        <div class="chatWrap">
-          <div class="chat" id="chat"></div>
-          <div class="chatBox">
-            <input id="chatInput" class="script" placeholder="اسأل… مثال: عطيني افتتاحية قوية" />
-            <button class="btn primary" id="sendChat">إرسال</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- JUDGE -->
-      <section class="view" id="view-judge">
-        <div class="pageHead">
-          <h2>لوحة التحكيم</h2>
-          <p>اسحب السلايدرز → احسب → تقرير جاهز → نسخ.</p>
-        </div>
-
-        <div class="judgeGrid">
-          <div class="card">
-            <div class="cardHead">الدرجات</div>
-            <div class="scores">
-              <div class="srow"><span>وضوح</span><input id="sClarity" type="range" min="0" max="100" value="72" /></div>
-              <div class="srow"><span>ثبات</span><input id="sStab" type="range" min="0" max="100" value="64" /></div>
-              <div class="srow"><span>تفاعل</span><input id="sEng" type="range" min="0" max="100" value="70" /></div>
-              <div class="srow"><span>لغة</span><input id="sLang" type="range" min="0" max="100" value="78" /></div>
-            </div>
-            <div class="sep"></div>
-            <button class="btn primary" id="calcJudge">احسب</button>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">النتيجة</div>
-            <div class="bigScore" id="finalScore">—</div>
-            <div class="decision" id="decision">—</div>
-            <div class="sep"></div>
-            <button class="btn ghost" id="makeReport">توليد تقرير</button>
-            <button class="btn soft" id="copyReport">نسخ</button>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">التقرير</div>
-            <pre class="report" id="report">اضغط “توليد تقرير”</pre>
-          </div>
-        </div>
-      </section>
-
-      <!-- REPORTS -->
-      <section class="view" id="view-reports">
-        <div class="pageHead">
-          <h2>التقارير</h2>
-          <p>جلسات محفوظة محلياً (LocalStorage).</p>
-        </div>
-
-        <div class="card">
-          <div class="cardHead">الجلسات</div>
-          <div class="sessions" id="sessions"></div>
-          <div class="sep"></div>
-          <button class="btn danger" id="clearSessions">مسح الكل</button>
-        </div>
-      </section>
-
-      <!-- SETTINGS -->
-      <section class="view" id="view-settings">
-        <div class="pageHead">
-          <h2>الإعدادات</h2>
-          <p>تحكم سريع: وضع الكاميرا (محاكاة) + تحسين الأداء + مفاتيح عرض.</p>
-        </div>
-
-        <div class="cards2">
-          <div class="card">
-            <div class="cardHead">Camera Simulation</div>
-            <div class="note">
-              الكاميرا الحقيقية تحتاج HTTPS + getUserMedia.
-              هنا محاكاة (Glow Lens) عشان الديمو يطلع قوي في التحكيم.
-            </div>
-            <div class="sep"></div>
-            <button class="btn soft" id="cameraSim">Toggle Camera Sim</button>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">Performance</div>
-            <div class="mini">
-              <label>تقليل المؤثرات (للأجهزة الضعيفة)</label>
-              <input id="lowFx" type="checkbox" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer class="foot">
-        <span>© SpeakXR</span>
-        <span class="muted">Static Local Demo • 100% Functional UI</span>
-      </footer>
-    </section>
-  </main>
-
-  <script src="./app.js"></script>
-</body>
-</html>
+    <section id="home-page" class="page-section active">
+        <h1>SpeakXR <span style="font-size:1rem; color:var(--primary)">X-Stage</span></h1>
+        <p>اختر بيئة التدريب للبدء</p>
+        
+        <div class
