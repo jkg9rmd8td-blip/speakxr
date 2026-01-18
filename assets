@@ -1,141 +1,94 @@
 /* ===============================
-   SpeakXR X-Stage Engine
+   SpeakXR Navigation Activator (Guaranteed)
+   - Works for SPA sections OR external pages
    =============================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 SpeakXR Engine Loaded");
+  console.log("✅ SpeakXR Activator Loaded");
 
-  /* -----------------
-     PAGE NAVIGATION
-  ------------------ */
-  const pages = document.querySelectorAll(".page");
-  const navBtns = document.querySelectorAll("[data-go]");
+  // Helper
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  function showPage(id) {
+  // --- Detect SPA pages (sections inside index.html)
+  const pages = $$(".page[id^='page-']");
+  const hasSpaPages = pages.length > 0;
+
+  function showSpaPage(key) {
     pages.forEach(p => p.classList.remove("active"));
-    const page = document.getElementById(`page-${id}`);
-    if (page) page.classList.add("active");
+    const el = document.getElementById(`page-${key}`);
+    if (el) el.classList.add("active");
 
-    navBtns.forEach(b => b.classList.remove("active"));
-    document
-      .querySelectorAll(`[data-go="${id}"]`)
-      .forEach(b => b.classList.add("active"));
+    // activate current tab style
+    $$("[data-go]").forEach(b => b.classList.remove("active"));
+    $$(`[data-go='${key}']`).forEach(b => b.classList.add("active"));
 
-    console.log("➡️ Page:", id);
+    // update hash
+    location.hash = key;
+    console.log("➡️ SPA Page:", key);
   }
 
-  navBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      showPage(btn.dataset.go);
+  // --- AUTO MAP BUTTONS BY TEXT (حتى لو ما فيه data-go)
+  const textMap = [
+    { keys: ["demo", "ديمو"], go: "demo" },
+    { keys: ["webxr", "xr", "واقع ممتد"], go: "webxr" },
+    { keys: ["executive", "تنفيذي"], go: "executive" },
+    { keys: ["الإعدادات", "settings"], go: "settings" },
+    { keys: ["التحكيم", "لجنة", "judge"], go: "judge" },
+    { keys: ["تحليل", "الأداء", "metrics"], go: "metrics" },
+    { keys: ["بيانات", "data"], go: "data" },
+    { keys: ["المسرح", "stage"], go: "stage" }
+  ];
+
+  function inferGoFromText(txt="") {
+    const t = txt.toLowerCase().trim();
+    for (const row of textMap) {
+      if (row.keys.some(k => t.includes(k.toLowerCase()))) return row.go;
+    }
+    return null;
+  }
+
+  // Attach click handlers to ALL buttons/links in top tabs
+  const clickable = [
+    ...$$("button"),
+    ...$$("a"),
+    ...$$("[role='button']")
+  ];
+
+  clickable.forEach(el => {
+    const declared = el.getAttribute("data-go");
+    const inferred = declared || inferGoFromText(el.textContent || "");
+
+    if (!inferred) return;
+
+    // ensure data-go exists for styling
+    el.setAttribute("data-go", inferred);
+
+    el.addEventListener("click", (e) => {
+      // If it's a link with href, prevent default to keep SPA working
+      if (el.tagName.toLowerCase() === "a") e.preventDefault();
+
+      if (hasSpaPages) {
+        showSpaPage(inferred);
+      } else {
+        // fallback: external pages
+        const file = `${inferred}.html`;
+        window.location.href = file;
+      }
     });
   });
 
-  /* -----------------
-     XR MODES
-  ------------------ */
-  let state = {
-    hud: true,
-    audience: false,
-    vr: false,
-    running: false,
-    time: 0
-  };
+  // Initial route
+  const start = (location.hash || "#demo").replace("#","");
+  if (hasSpaPages) showSpaPage(start);
 
-  const hud = document.getElementById("hud");
-  const audience = document.getElementById("audience");
-  const vr = document.getElementById("vr");
-
-  function toggle(el, key) {
-    state[key] = !state[key];
-    el.style.display = state[key] ? "block" : "none";
-  }
-
-  document.getElementById("toggleHUD")?.onclick = () => toggle(hud, "hud");
-  document.getElementById("toggleAudience")?.onclick = () =>
-    toggle(audience, "audience");
-  document.getElementById("toggleVR")?.onclick = () => toggle(vr, "vr");
-
-  /* -----------------
-     SESSION CONTROL
-  ------------------ */
-  const startBtn = document.getElementById("startBtn");
-  const stopBtn = document.getElementById("stopBtn");
-  const pillTime = document.getElementById("pillTime");
-
-  let timer = null;
-
-  startBtn.onclick = () => {
-    if (state.running) return;
-    state.running = true;
-    startBtn.disabled = true;
-    stopBtn.disabled = false;
-    state.time = 0;
-
-    timer = setInterval(() => {
-      state.time++;
-      const m = String(Math.floor(state.time / 60)).padStart(2, "0");
-      const s = String(state.time % 60).padStart(2, "0");
-      pillTime.textContent = `${m}:${s}`;
-    }, 1000);
-
-    console.log("▶️ Session Started");
-  };
-
-  stopBtn.onclick = () => {
-    state.running = false;
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-    clearInterval(timer);
-    console.log("⏹ Session Stopped");
-  };
-
-  /* -----------------
-     TELEPROMPTER
-  ------------------ */
-  const teleText = document.getElementById("teleText");
-  const teleInput = document.getElementById("scriptInput");
-
-  document.getElementById("applyScript")?.onclick = () => {
-    teleText.textContent = teleInput.value || "—";
-  };
-
-  /* -----------------
-     COACH AI (Mock)
-  ------------------ */
-  const chat = document.getElementById("chat");
-  const chatInput = document.getElementById("chatInput");
-
-  document.getElementById("sendChat")?.onclick = () => {
-    if (!chatInput.value) return;
-
-    chat.innerHTML += `
-      <div><b>👤 أنت:</b> ${chatInput.value}</div>
-      <div><b>🤖 المدرب:</b> بداية قوية، خفّف السرعة، وانظر للجمهور.</div>
+  // ---- Minimal show/hide style for SPA pages (if CSS missing)
+  if (hasSpaPages) {
+    const style = document.createElement("style");
+    style.textContent = `
+      .page{display:none}
+      .page.active{display:block}
+      [data-go].active{outline:2px solid rgba(124,92,255,.55); border-radius:999px}
     `;
-    chat.scrollTop = chat.scrollHeight;
-    chatInput.value = "";
-  };
-
-  /* -----------------
-     JUDGE ENGINE
-  ------------------ */
-  document.getElementById("calcJudge")?.onclick = () => {
-    const vals = [
-      sClarity.value,
-      sStab.value,
-      sEng.value,
-      sLang.value
-    ].map(Number);
-
-    const avg = Math.round(vals.reduce((a, b) => a + b) / vals.length);
-
-    document.getElementById("finalScore").textContent = avg;
-    document.getElementById("decision").textContent =
-      avg > 75 ? "🏆 ممتاز" : avg > 60 ? "👍 جيد" : "⚠️ يحتاج تحسين";
-  };
-
-  /* -----------------
-     DEFAULT PAGE
-  ------------------ */
-  showPage("home");
+    document.head.appendChild(style);
+  }
 });
