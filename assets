@@ -1,94 +1,121 @@
-/* ===============================
-   SpeakXR Navigation Activator (Guaranteed)
-   - Works for SPA sections OR external pages
-   =============================== */
+/* ================================
+   SpeakXR SPA Router (FIXED)
+   - يدعم: nav buttons + tabs + أي عنصر عنده data-go
+   - يشتغل مع #hash
+   - يتجنب لخبطة .page داخل aside (نستهدف .content فقط)
+================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ SpeakXR Activator Loaded");
-
-  // Helper
+(() => {
+  const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  // --- Detect SPA pages (sections inside index.html)
-  const pages = $$(".page[id^='page-']");
-  const hasSpaPages = pages.length > 0;
-
-  function showSpaPage(key) {
-    pages.forEach(p => p.classList.remove("active"));
-    const el = document.getElementById(`page-${key}`);
-    if (el) el.classList.add("active");
-
-    // activate current tab style
-    $$("[data-go]").forEach(b => b.classList.remove("active"));
-    $$(`[data-go='${key}']`).forEach(b => b.classList.add("active"));
-
-    // update hash
-    location.hash = key;
-    console.log("➡️ SPA Page:", key);
+  function normalizeKey(k) {
+    return String(k || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^page-/, "")
+      .replace(/^#/, "");
   }
 
-  // --- AUTO MAP BUTTONS BY TEXT (حتى لو ما فيه data-go)
-  const textMap = [
-    { keys: ["demo", "ديمو"], go: "demo" },
-    { keys: ["webxr", "xr", "واقع ممتد"], go: "webxr" },
-    { keys: ["executive", "تنفيذي"], go: "executive" },
-    { keys: ["الإعدادات", "settings"], go: "settings" },
-    { keys: ["التحكيم", "لجنة", "judge"], go: "judge" },
-    { keys: ["تحليل", "الأداء", "metrics"], go: "metrics" },
-    { keys: ["بيانات", "data"], go: "data" },
-    { keys: ["المسرح", "stage"], go: "stage" }
-  ];
+  function getContentRoot() {
+    // مهم: نشتغل على صفحات المحتوى فقط
+    return document.querySelector(".content") || document.body;
+  }
 
-  function inferGoFromText(txt="") {
-    const t = txt.toLowerCase().trim();
-    for (const row of textMap) {
-      if (row.keys.some(k => t.includes(k.toLowerCase()))) return row.go;
+  function getPages() {
+    const root = getContentRoot();
+    return $$(".page[id^='page-']", root);
+  }
+
+  function hasPage(key) {
+    const root = getContentRoot();
+    return !!root.querySelector(`#page-${key}`);
+  }
+
+  function setActivePage(key, { silentHash=false } = {}) {
+    key = normalizeKey(key);
+
+    const root = getContentRoot();
+    const pages = getPages();
+
+    if (!key) key = "home";
+    if (!root.querySelector(`#page-${key}`)) {
+      // fallback: اول صفحة موجودة
+      const first = pages[0]?.id?.replace("page-","") || "home";
+      key = first;
     }
-    return null;
-  }
 
-  // Attach click handlers to ALL buttons/links in top tabs
-  const clickable = [
-    ...$$("button"),
-    ...$$("a"),
-    ...$$("[role='button']")
-  ];
+    // hide all pages
+    pages.forEach(p => p.classList.remove("active"));
 
-  clickable.forEach(el => {
-    const declared = el.getAttribute("data-go");
-    const inferred = declared || inferGoFromText(el.textContent || "");
+    // show target
+    const target = root.querySelector(`#page-${key}`);
+    if (target) target.classList.add("active");
 
-    if (!inferred) return;
-
-    // ensure data-go exists for styling
-    el.setAttribute("data-go", inferred);
-
-    el.addEventListener("click", (e) => {
-      // If it's a link with href, prevent default to keep SPA working
-      if (el.tagName.toLowerCase() === "a") e.preventDefault();
-
-      if (hasSpaPages) {
-        showSpaPage(inferred);
-      } else {
-        // fallback: external pages
-        const file = `${inferred}.html`;
-        window.location.href = file;
-      }
+    // تحديث حالة الأزرار اللي فوق (nav/tabs)
+    // أي زر عنده data-go يطابق key
+    $$("[data-go]").forEach(btn => {
+      const bKey = normalizeKey(btn.getAttribute("data-go"));
+      btn.classList.toggle("active", bKey === key);
+      btn.setAttribute("aria-current", bKey === key ? "page" : "false");
     });
-  });
 
-  // Initial route
-  const start = (location.hash || "#demo").replace("#","");
-  if (hasSpaPages) showSpaPage(start);
+    // تحديث الـ hash
+    if (!silentHash) {
+      const newHash = `#${key}`;
+      if (location.hash !== newHash) {
+        history.replaceState(null, "", newHash);
+      }
+    }
 
-  // ---- Minimal show/hide style for SPA pages (if CSS missing)
-  if (hasSpaPages) {
-    const style = document.createElement("style");
-    style.textContent = `
-      .page{display:none}
-      .page.active{display:block}
-      [data-go].active{outline:2px solid rgba(124,92,255,.55); border-radius:999px}
-    `;
-    document.head.appendChild(style);
+    // ديباغ لطيف في الكونسل
+    // console.log("➡️ Page:", key);
   }
-});
+
+  function wireClicks() {
+    // يلتقط أي ضغط على عنصر عنده data-go (حتى لو داخل زر/أيقونة)
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-go]");
+      if (!el) return;
+
+      const key = normalizeKey(el.getAttribute("data-go"));
+      if (!key) return;
+
+      // منع أي سلوك افتراضي لو كان رابط
+      e.preventDefault();
+
+      // إذا الصفحة موجودة فعلاً
+      if (hasPage(key)) {
+        setActivePage(key);
+      } else {
+        // لو تضغط زر وما عندك صفحة له.. نوديه للـ home بدل ما يصير “ميت”
+        setActivePage("home");
+      }
+    }, { passive: false });
+  }
+
+  function wireHash() {
+    window.addEventListener("hashchange", () => {
+      const key = normalizeKey(location.hash);
+      setActivePage(key, { silentHash: true });
+    });
+  }
+
+  function boot() {
+    // تأكد إن عندك على الأقل صفحة وحدة
+    const pages = getPages();
+    if (!pages.length) {
+      console.warn("⚠️ ما لقيت صفحات داخل .content. تأكد أن sections .page داخل content مو داخل aside.");
+      return;
+    }
+
+    wireClicks();
+    wireHash();
+
+    // افتح الصفحة حسب الـ hash أو home
+    const initial = normalizeKey(location.hash) || "home";
+    setActivePage(initial, { silentHash: true });
+  }
+
+  document.addEventListener("DOMContentLoaded", boot);
+})();
