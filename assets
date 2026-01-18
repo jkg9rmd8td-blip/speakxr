@@ -1,120 +1,141 @@
-/* =========================
-   SpeakXR – Core Engine
-   ========================= */
+/* ===============================
+   SpeakXR X-Stage Engine
+   =============================== */
 
-console.log("🚀 SpeakXR Engine Loaded");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 SpeakXR Engine Loaded");
 
-/* -------- Navigation -------- */
-const navButtons = document.querySelectorAll("[data-go]");
-const pages = document.querySelectorAll(".page");
+  /* -----------------
+     PAGE NAVIGATION
+  ------------------ */
+  const pages = document.querySelectorAll(".page");
+  const navBtns = document.querySelectorAll("[data-go]");
 
-navButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.go;
-
-    // active button
-    navButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    // active page
+  function showPage(id) {
     pages.forEach(p => p.classList.remove("active"));
-    const page = document.getElementById(`page-${target}`);
+    const page = document.getElementById(`page-${id}`);
     if (page) page.classList.add("active");
-  });
-});
 
-/* -------- Stage Controls -------- */
-const stageMode = document.getElementById("pillMode");
-const statusTitle = document.getElementById("stTitle");
-const statusSub = document.getElementById("stSub");
+    navBtns.forEach(b => b.classList.remove("active"));
+    document
+      .querySelectorAll(`[data-go="${id}"]`)
+      .forEach(b => b.classList.add("active"));
 
-function setMode(mode) {
-  stageMode.textContent = `MODE: ${mode}`;
-  statusTitle.textContent = "قيد التشغيل";
-  statusSub.textContent = `الوضع الحالي: ${mode}`;
-}
-
-/* -------- Buttons -------- */
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-const wowBtn = document.getElementById("wowBtn");
-
-startBtn?.addEventListener("click", () => {
-  setMode("XR");
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-});
-
-stopBtn?.addEventListener("click", () => {
-  setMode("READY");
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-});
-
-wowBtn?.addEventListener("click", () => {
-  alert("🔥 Demo WOW جاهز – تخيّل جمهور + HUD + تحكيم");
-});
-
-/* -------- XR / AR / VR -------- */
-const xrHud = document.getElementById("xrHud");
-const xrAud = document.getElementById("xrAud");
-const xrTele = document.getElementById("xrTele");
-const xrVr = document.getElementById("xrVr");
-
-const hud = document.getElementById("hud");
-const audience = document.getElementById("audience");
-const tele = document.getElementById("tele");
-const vr = document.getElementById("vr");
-
-xrHud?.addEventListener("click", () => {
-  hud.style.display = hud.style.display === "none" ? "block" : "none";
-});
-
-xrAud?.addEventListener("click", () => {
-  audience.style.display = audience.style.display === "none" ? "block" : "none";
-});
-
-xrTele?.addEventListener("click", () => {
-  tele.style.display = tele.style.display === "none" ? "block" : "none";
-});
-
-xrVr?.addEventListener("click", () => {
-  vr.style.display = vr.style.display === "none" ? "block" : "none";
-});
-
-/* -------- Teleprompter -------- */
-const teleArea = document.getElementById("teleArea");
-const teleText = document.getElementById("teleText");
-const teleApply = document.getElementById("teleApply");
-
-teleApply?.addEventListener("click", () => {
-  if (teleArea.value.trim() !== "") {
-    teleText.textContent = teleArea.value;
+    console.log("➡️ Page:", id);
   }
-});
 
-/* -------- Coach Mock -------- */
-const chat = document.getElementById("chat");
-const chatInput = document.getElementById("chatInput");
-const sendChat = document.getElementById("sendChat");
+  navBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      showPage(btn.dataset.go);
+    });
+  });
 
-sendChat?.addEventListener("click", () => {
-  const q = chatInput.value.trim();
-  if (!q) return;
+  /* -----------------
+     XR MODES
+  ------------------ */
+  let state = {
+    hud: true,
+    audience: false,
+    vr: false,
+    running: false,
+    time: 0
+  };
 
-  chat.innerHTML += `<div><b>أنت:</b> ${q}</div>`;
-  chat.innerHTML += `<div><b>🎤 المدرب:</b> افتح بقصة قصيرة، ثم سؤال قوي، ثم وعد للجمهور.</div>`;
-  chat.scrollTop = chat.scrollHeight;
-  chatInput.value = "";
-});
+  const hud = document.getElementById("hud");
+  const audience = document.getElementById("audience");
+  const vr = document.getElementById("vr");
 
-/* -------- Judge -------- */
-const calcJudge = document.getElementById("calcJudge");
-const finalScore = document.getElementById("finalScore");
-const decision = document.getElementById("decision");
+  function toggle(el, key) {
+    state[key] = !state[key];
+    el.style.display = state[key] ? "block" : "none";
+  }
 
-calcJudge?.addEventListener("click", () => {
-  const score = Math.floor(70 + Math.random() * 25);
-  finalScore.textContent = score;
-  decision.textContent = score > 80 ? "🔥 ممتاز" : "👍 جيد جدًا";
+  document.getElementById("toggleHUD")?.onclick = () => toggle(hud, "hud");
+  document.getElementById("toggleAudience")?.onclick = () =>
+    toggle(audience, "audience");
+  document.getElementById("toggleVR")?.onclick = () => toggle(vr, "vr");
+
+  /* -----------------
+     SESSION CONTROL
+  ------------------ */
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  const pillTime = document.getElementById("pillTime");
+
+  let timer = null;
+
+  startBtn.onclick = () => {
+    if (state.running) return;
+    state.running = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    state.time = 0;
+
+    timer = setInterval(() => {
+      state.time++;
+      const m = String(Math.floor(state.time / 60)).padStart(2, "0");
+      const s = String(state.time % 60).padStart(2, "0");
+      pillTime.textContent = `${m}:${s}`;
+    }, 1000);
+
+    console.log("▶️ Session Started");
+  };
+
+  stopBtn.onclick = () => {
+    state.running = false;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    clearInterval(timer);
+    console.log("⏹ Session Stopped");
+  };
+
+  /* -----------------
+     TELEPROMPTER
+  ------------------ */
+  const teleText = document.getElementById("teleText");
+  const teleInput = document.getElementById("scriptInput");
+
+  document.getElementById("applyScript")?.onclick = () => {
+    teleText.textContent = teleInput.value || "—";
+  };
+
+  /* -----------------
+     COACH AI (Mock)
+  ------------------ */
+  const chat = document.getElementById("chat");
+  const chatInput = document.getElementById("chatInput");
+
+  document.getElementById("sendChat")?.onclick = () => {
+    if (!chatInput.value) return;
+
+    chat.innerHTML += `
+      <div><b>👤 أنت:</b> ${chatInput.value}</div>
+      <div><b>🤖 المدرب:</b> بداية قوية، خفّف السرعة، وانظر للجمهور.</div>
+    `;
+    chat.scrollTop = chat.scrollHeight;
+    chatInput.value = "";
+  };
+
+  /* -----------------
+     JUDGE ENGINE
+  ------------------ */
+  document.getElementById("calcJudge")?.onclick = () => {
+    const vals = [
+      sClarity.value,
+      sStab.value,
+      sEng.value,
+      sLang.value
+    ].map(Number);
+
+    const avg = Math.round(vals.reduce((a, b) => a + b) / vals.length);
+
+    document.getElementById("finalScore").textContent = avg;
+    document.getElementById("decision").textContent =
+      avg > 75 ? "🏆 ممتاز" : avg > 60 ? "👍 جيد" : "⚠️ يحتاج تحسين";
+  };
+
+  /* -----------------
+     DEFAULT PAGE
+  ------------------ */
+  showPage("home");
 });
