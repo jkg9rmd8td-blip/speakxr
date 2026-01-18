@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SpeakXR — X-Stage PRO (LIVE)</title>
-  <meta name="description" content="SpeakXR منصة تدريب XR/AR/VR حية: كاميرا + تسجيل + تحليل + تحكيم + تقارير + جمهور تفاعلي." />
+  <title>SpeakXR — X-Stage PRO</title>
+  <meta name="description" content="SpeakXR منصة تدريب XR/AR/VR مع تنقل حي (SPA) + صفحات + لوحات." />
   <link rel="stylesheet" href="./assets/style.css" />
 </head>
 
@@ -16,8 +16,8 @@
     <div class="brand">
       <div class="logo">SX</div>
       <div class="btext">
-        <div class="bname">SpeakXR <span class="chip">X-Stage PRO • LIVE</span></div>
-        <div class="bsub">AR Camera • Voice Engine • Audience • Coach • Judge • Reports</div>
+        <div class="bname">SpeakXR <span class="chip">X-Stage PRO</span></div>
+        <div class="bsub">WebXR • AR HUD • Coach • Judge • Reports</div>
       </div>
     </div>
 
@@ -31,35 +31,30 @@
 
     <div class="actions">
       <button class="btn ghost" id="themeBtn" title="تبديل النمط">🌓</button>
-      <button class="btn soft" id="helpBtn" title="مساعدة">؟</button>
-      <button class="btn primary" id="startBtn">بدء جلسة</button>
-      <button class="btn danger" id="stopBtn" disabled>إيقاف</button>
+      <button class="btn primary" data-go="stage">Enter Stage ⚡</button>
     </div>
   </header>
 
   <main class="shell">
+    <!-- SIDEBAR (لوحة جانبية فقط - ممنوع تحط pages هنا) -->
     <aside class="side">
       <section class="card">
-        <div class="cardHead">لوحة التشغيل الحي</div>
+        <div class="cardHead">لوحة التحكم</div>
 
         <div class="grid2">
-          <button class="btn soft" id="toggleAR">AR Camera</button>
-          <button class="btn soft" id="toggleHUD">HUD</button>
-          <button class="btn soft" id="toggleAudience">الجمهور</button>
-          <button class="btn soft" id="toggleTele">التلقين</button>
-          <button class="btn soft" id="toggleVR">VR Stage</button>
-          <button class="btn soft" id="toggleSTT">تحويل كلام لنص</button>
+          <button class="btn soft" data-go="demo">Demo</button>
+          <button class="btn soft" data-go="webxr">WebXR</button>
+          <button class="btn soft" data-go="executive">Executive</button>
+          <button class="btn soft" data-go="settings">الإعدادات</button>
+          <button class="btn soft" data-go="metrics">تحليل الأداء</button>
+          <button class="btn soft" data-go="data">بيانات التدريب</button>
         </div>
 
         <div class="sep"></div>
 
         <div class="mini">
-          <label>حجم HUD</label>
-          <input id="hudSize" type="range" min="12" max="30" value="18" />
-
           <label>قوة الجمهور</label>
           <input id="audPower" type="range" min="0" max="100" value="70" />
-
           <label>سرعة التلقين</label>
           <input id="teleSpeed" type="range" min="10" max="160" value="85" />
         </div>
@@ -70,272 +65,191 @@
           <div class="dot" id="dot"></div>
           <div>
             <div class="stTitle" id="stTitle">جاهز</div>
-            <div class="stSub" id="stSub">اضغط “بدء جلسة” وخلك خطّاف 👀</div>
+            <div class="stSub" id="stSub">اضغط أي تبويب… وراح تتنقل مباشرة ✅</div>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <div class="cardHead">Voice Engine KPIs</div>
-        <div class="kpis">
-          <div class="kpi"><div class="k">الوقت</div><div class="v" id="kTime">00:00</div></div>
-          <div class="kpi"><div class="k">WPM</div><div class="v" id="kWpm">0</div></div>
-          <div class="kpi"><div class="k">حشوية</div><div class="v" id="kFiller">0</div></div>
-          <div class="kpi"><div class="k">ثقة</div><div class="v" id="kConf">0%</div></div>
-          <div class="kpi"><div class="k">طاقة</div><div class="v" id="kEnergy">0</div></div>
-          <div class="kpi"><div class="k">وضوح</div><div class="v" id="kClarity">0</div></div>
-        </div>
-
-        <div class="sep"></div>
-
+        <div class="cardHead">مختصرات</div>
         <div class="grid2">
-          <button class="btn primary" id="recBtn">🎙️ تسجيل</button>
-          <button class="btn soft" id="markBtn">📍 علامة</button>
+          <button class="btn ghost" data-go="home">Home</button>
+          <button class="btn ghost" data-go="stage">Stage</button>
+          <button class="btn ghost" data-go="judge">Judge</button>
+          <button class="btn ghost" data-go="reports">Reports</button>
         </div>
-
-        <div class="sep"></div>
-        <!-- PAGES (لازم تكون موجودة) -->
-<section class="page active" id="page-demo">محتوى Demo هنا…</section>
-<section class="page" id="page-webxr">محتوى WebXR هنا…</section>
-<section class="page" id="page-executive">محتوى Executive هنا…</section>
-<section class="page" id="page-settings">محتوى الإعدادات هنا…</section>
-<section class="page" id="page-judge">محتوى التحكيم هنا…</section>
-<section class="page" id="page-metrics">محتوى تحليل الأداء هنا…</section>
-<section class="page" id="page-data">محتوى بيانات التدريب هنا…</section>
-<section class="page" id="page-stage">محتوى المسرح هنا…</section>
-
-        <button class="btn ghost" id="saveSession">حفظ الجلسة</button>
       </section>
     </aside>
 
+    <!-- CONTENT (هنا فقط الصفحات) -->
     <section class="content">
-      <!-- HOME -->
+
+      <!-- Tabs داخل المحتوى (برضه data-go) -->
+      <div class="tabs">
+        <button class="tab active" data-go="home">Home</button>
+        <button class="tab" data-go="xr">XR</button>
+        <button class="tab" data-go="coach">Coach</button>
+        <button class="tab" data-go="judge">Judge</button>
+        <button class="tab" data-go="reports">Reports</button>
+        <button class="tab" data-go="stage">Stage</button>
+      </div>
+
+      <!-- الصفحات -->
       <section class="page active" id="page-home">
-        <div class="hero">
-          <div class="heroText">
-            <h1>منصة تدريب <span class="glow">حيّة</span>… مو واجهة حلوة وخلاص</h1>
-            <p>
-              هنا عندك تشغيل فعلي: كاميرا AR + ميكروفون + تسجيل + تحليل مباشر + جمهور يتفاعل + تقرير محفوظ.
-            </p>
-            <div class="heroBtns">
-              <button class="btn primary navBtn" data-go="xr">ادخل XR/AR</button>
-              <button class="btn ghost navBtn" data-go="judge">لوحة التحكيم</button>
-              <button class="btn soft" id="wowBtn">Demo WOW</button>
-            </div>
-
-            <div class="note">
-              ملاحظة: GitHub Pages يدعم الكاميرا/المايك لأن الرابط HTTPS. إذا رفضت الصلاحيات… المنصة بتقول لك وش تسوي.
-            </div>
-          </div>
-
-          <div class="stage">
-            <div class="stageTop">
-              <div class="pill" id="pillMode">MODE: READY</div>
-              <div class="pill" id="pillAR">AR: OFF</div>
-              <div class="pill" id="pillAud">AUD: 70</div>
-              <div class="pill" id="pillSTT">STT: OFF</div>
-            </div>
-
-            <div class="stageBody">
-              <div class="lens" id="lens">
-                <!-- Video AR -->
-                <video id="cam" class="cam" autoplay playsinline muted></video>
-
-                <!-- HUD -->
-                <div class="hud" id="hud">
-                  <div class="hudRow">
-                    <span class="hudTag live">LIVE</span>
-                    <span class="hudTag" id="hudTimer">00:00</span>
-                    <span class="hudTag" id="hudHint">نصيحة: افتح بجملة “تخطف”… لا “السلام عليكم وبس” 😄</span>
-                  </div>
-
-                  <div class="tele" id="tele" aria-hidden="true">
-                    <div class="teleTitle">التلقين</div>
-                    <div class="teleText" id="teleText">اكتب النص تحت ثم “تطبيق النص”.</div>
-                  </div>
-
-                  <div class="micPanel">
-                    <canvas id="vu" width="520" height="74"></canvas>
-                    <div class="micMeta">
-                      <div><b>Mic</b> <span id="micState">Idle</span></div>
-                      <div><b>Peak</b> <span id="micPeak">0.00</span></div>
-                      <div><b>Marks</b> <span id="micMarks">0</span></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Audience -->
-                <div class="audience" id="audience" aria-hidden="true">
-                  <div class="audTitle">الجمهور التفاعلي</div>
-                  <canvas id="aud" width="900" height="420"></canvas>
-                  <div class="audBadges">
-                    <span class="badge" id="audMood">Mood: Focus</span>
-                    <span class="badge" id="audClaps">Claps: 0</span>
-                    <span class="badge" id="audNoise">Noise: Low</span>
-                  </div>
-                </div>
-
-                <!-- VR -->
-                <div class="vr" id="vr" aria-hidden="true">
-                  <div class="vrTitle">VR Stage (Concept)</div>
-                  <div class="vrSub">قاعة 3D — تتحرك مع الماوس</div>
-                  <div class="vrStage" id="vrStage">
-                    <div class="vrFloor"></div>
-                    <div class="vrWall"></div>
-                    <div class="vrSpot"></div>
-                    <div class="vrPodium"></div>
-                  </div>
-                </div>
-
-                <!-- Overlay -->
-                <div class="hintOverlay" id="hintOverlay" hidden>
-                  <div class="hintBox">
-                    <div class="hintTitle">صلاحيات مطلوبة</div>
-                    <div class="hintText" id="hintText">—</div>
-                    <div class="hintBtns">
-                      <button class="btn primary" id="retryPerms">إعادة المحاولة</button>
-                      <button class="btn ghost" id="closeHint">إغلاق</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="stageBottom">
-              <input id="scriptInput" class="script" placeholder="✍️ اكتب نص الإلقاء هنا… (يتحول تلقين)" />
-              <button class="btn soft" id="applyScript">تطبيق النص</button>
-              <button class="btn soft" id="boostBtn">Boost Audience</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- XR -->
-      <section class="page" id="page-xr">
         <div class="pageHead">
-          <h2>XR/AR Console</h2>
-          <p>شغّل الكاميرا وابدأ تسجيل… وشوف المؤشرات تتحرك قدامك.</p>
+          <h2>الرئيسية</h2>
+          <p>هنا التنقل حي 100% — أي زر عنده <b>data-go</b> يوديك لصفحة مطابقة.</p>
         </div>
 
-        <div class="cards3">
-          <div class="card big">
-            <div class="cardHead">تحكم فوري</div>
+        <div class="hero">
+          <div class="card">
+            <div class="cardHead">SpeakXR — منصة واو</div>
+            <p class="muted">
+              جرب اضغط: XR/AR أو Stage أو Demo… وإذا تحب تختبر: اكتب في الرابط <b>#xr</b>
+            </p>
             <div class="grid2">
-              <button class="btn soft" id="xrAR">AR Camera</button>
-              <button class="btn soft" id="xrHUD">HUD</button>
-              <button class="btn soft" id="xrAud">Audience</button>
-              <button class="btn soft" id="xrTele">Teleprompter</button>
-              <button class="btn soft" id="xrVR">VR</button>
-              <button class="btn soft" id="xrSTT">Speech→Text</button>
+              <button class="btn primary" data-go="xr">اذهب إلى XR</button>
+              <button class="btn soft" data-go="stage">Enter Stage</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">حالة النظام</div>
+            <div class="kpiRow">
+              <div class="kpi"><span>Mode</span><b id="mode">READY</b></div>
+              <div class="kpi"><span>Audience</span><b id="audVal">70</b></div>
+              <div class="kpi"><span>Tele</span><b id="teleVal">85</b></div>
             </div>
             <div class="sep"></div>
-            <div class="note">
-              إذا STT ما اشتغل: كروم يدعمه غالبًا. وعلى سفاري يمكن يختلف—مو مشكلة، التسجيل والتحليل شغالين.
+            <div class="muted">إذا الأزرار ما تنقل بعد هذا… معناته JS ما ينقرأ.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-xr">
+        <div class="pageHead">
+          <h2>XR / AR</h2>
+          <p>صفحة XR. جرّب الآن ارجع Home أو روح Judge.</p>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="cardHead">XR Controls</div>
+            <div class="grid2">
+              <button class="btn soft" id="fakeAR">AR Camera (Demo)</button>
+              <button class="btn soft" id="fakeHUD">HUD (Demo)</button>
             </div>
           </div>
-
           <div class="card">
-            <div class="cardHead">نص التلقين</div>
-            <textarea id="teleArea" class="ta" placeholder="الصق النص هنا…"></textarea>
+            <div class="cardHead">انتقال سريع</div>
             <div class="grid2">
-              <button class="btn primary" id="teleApply">تطبيق</button>
-              <button class="btn soft" id="teleClear">مسح</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">التفريغ (Live Transcript)</div>
-            <pre class="pre" id="transcript">—</pre>
-            <div class="grid2">
-              <button class="btn ghost" id="copyTranscript">نسخ</button>
-              <button class="btn soft" id="clearTranscript">مسح</button>
+              <button class="btn primary" data-go="coach">Coach</button>
+              <button class="btn soft" data-go="judge">Judge</button>
             </div>
           </div>
         </div>
       </section>
-      <button class="tab" data-go="demo">Demo</button>
-<button class="tab" data-go="webxr">WebXR</button>
-<button class="tab" data-go="executive">Executive</button>
-<button class="tab" data-go="settings">الإعدادات</button>
-<button class="tab" data-go="judge">لجنة التحكيم</button>
-<button class="tab" data-go="metrics">تحليل الأداء</button>
-<button class="tab" data-go="data">بيانات التدريب</button>
-<button class="tab" data-go="stage">المسرح</button>
 
-      <!-- COACH -->
       <section class="page" id="page-coach">
         <div class="pageHead">
-          <h2>المدرب الذكي (تشغيل حي)</h2>
-          <p>يرد عليك + يعطي توصيات مبنية على أرقامك الحالية.</p>
+          <h2>المدرب</h2>
+          <p>Mock Coach سريع.</p>
         </div>
-
-        <div class="chatWrap">
-          <div class="chat" id="chat"></div>
-          <div class="chatBox">
-            <input id="chatInput" class="script" placeholder="اسأل… مثال: كيف أرفع الثقة؟" />
-            <button class="btn primary" id="sendChat">إرسال</button>
-            <button class="btn soft" id="coachPunch">توصية فورية</button>
+        <div class="card">
+          <div class="cardHead">Coach Box</div>
+          <div id="coachBox" class="pre">قل: "كيف أبدأ مقدمة قوية؟"</div>
+          <div class="sep"></div>
+          <div class="grid2">
+            <input id="coachIn" class="input" placeholder="اكتب سؤالك..." />
+            <button class="btn primary" id="coachSend">إرسال</button>
           </div>
         </div>
       </section>
 
-      <!-- JUDGE -->
       <section class="page" id="page-judge">
         <div class="pageHead">
-          <h2>لوحة التحكيم</h2>
-          <p>تحكيم “يقفل الموضوع”: يجمع بين تقييمك اليدوي + KPIs الحيّة.</p>
+          <h2>التحكيم</h2>
+          <p>درجات + قرار.</p>
         </div>
-
-        <div class="judgeGrid">
+        <div class="grid2">
           <div class="card">
-            <div class="cardHead">درجات يدوية</div>
-            <div class="scores">
-              <div class="srow"><span>وضوح</span><input id="sClarity" type="range" min="0" max="100" value="75" /></div>
-              <div class="srow"><span>ثبات</span><input id="sStab" type="range" min="0" max="100" value="70" /></div>
-              <div class="srow"><span>تفاعل</span><input id="sEng" type="range" min="0" max="100" value="76" /></div>
-              <div class="srow"><span>لغة</span><input id="sLang" type="range" min="0" max="100" value="78" /></div>
-            </div>
+            <div class="cardHead">الدرجات</div>
+            <label class="lab">وضوح <input id="sClarity" type="range" min="0" max="100" value="75"></label>
+            <label class="lab">ثبات <input id="sStab" type="range" min="0" max="100" value="70"></label>
+            <label class="lab">تفاعل <input id="sEng" type="range" min="0" max="100" value="76"></label>
+            <label class="lab">لغة <input id="sLang" type="range" min="0" max="100" value="78"></label>
             <div class="sep"></div>
             <button class="btn primary" id="calcJudge">احسب</button>
           </div>
-
           <div class="card">
             <div class="cardHead">النتيجة</div>
             <div class="bigScore" id="finalScore">—</div>
-            <div class="decision" id="decision">—</div>
+            <div class="muted" id="decision">—</div>
             <div class="sep"></div>
-            <div class="grid2">
-              <button class="btn ghost" id="makeReport">توليد تقرير</button>
-              <button class="btn soft" id="copyReport">نسخ</button>
-            </div>
-            <button class="btn soft" id="downloadReport">تحميل TXT</button>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">التقرير</div>
-            <pre class="report" id="report">اضغط “توليد تقرير”</pre>
+            <button class="btn soft" data-go="reports">اذهب للتقارير</button>
           </div>
         </div>
       </section>
 
-      <!-- REPORTS -->
       <section class="page" id="page-reports">
         <div class="pageHead">
-          <h2>التقارير والجلسات</h2>
-          <p>يحفظ جلساتك محليًا في المتصفح. تقدر تعرضها للجنة تحكيم مباشرة.</p>
+          <h2>التقارير</h2>
+          <p>يحفظ نتائجك في LocalStorage.</p>
         </div>
-
         <div class="card">
-          <div class="cardHead">جلسات محفوظة</div>
-          <div class="sessions" id="sessions"></div>
+          <div class="cardHead">Sessions</div>
+          <div id="sessions" class="sessions"></div>
           <div class="sep"></div>
-          <button class="btn danger" id="clearSessions">مسح الكل</button>
+          <div class="grid2">
+            <button class="btn primary" id="saveSession">حفظ جلسة</button>
+            <button class="btn danger" id="clearSessions">مسح الكل</button>
+          </div>
         </div>
+      </section>
+
+      <section class="page" id="page-stage">
+        <div class="pageHead">
+          <h2>XR Stage</h2>
+          <p>هذه صفحة المسرح. (Demo) — المهم إنها تتنقل 😄</p>
+        </div>
+        <div class="card">
+          <div class="cardHead">Stage</div>
+          <div class="pre">Enter Stage ✅</div>
+        </div>
+      </section>
+
+      <section class="page" id="page-demo">
+        <div class="pageHead"><h2>Demo</h2><p>صفحة ديمو.</p></div>
+        <div class="card"><div class="pre">Demo content…</div></div>
+      </section>
+
+      <section class="page" id="page-webxr">
+        <div class="pageHead"><h2>WebXR</h2><p>صفحة WebXR.</p></div>
+        <div class="card"><div class="pre">WebXR content…</div></div>
+      </section>
+
+      <section class="page" id="page-executive">
+        <div class="pageHead"><h2>Executive</h2><p>صفحة تنفيذية.</p></div>
+        <div class="card"><div class="pre">Executive content…</div></div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="pageHead"><h2>الإعدادات</h2><p>Settings.</p></div>
+        <div class="card"><div class="pre">Settings content…</div></div>
+      </section>
+
+      <section class="page" id="page-metrics">
+        <div class="pageHead"><h2>تحليل الأداء</h2><p>Metrics.</p></div>
+        <div class="card"><div class="pre">Metrics content…</div></div>
+      </section>
+
+      <section class="page" id="page-data">
+        <div class="pageHead"><h2>بيانات التدريب</h2><p>Data.</p></div>
+        <div class="card"><div class="pre">Data content…</div></div>
       </section>
 
       <footer class="foot">
         <span>© SpeakXR</span>
-        <span class="muted">Static • Works on GitHub Pages • HTTPS for Camera/Mic</span>
+        <span class="muted">Static SPA • GitHub Pages</span>
       </footer>
     </section>
   </main>
